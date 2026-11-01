@@ -11,19 +11,38 @@
 | `template.html` | 網頁版型（版面、顏色、文字） |
 | `index.html` | **產生出來的網站**，就是要給學生用的檔案 |
 
+## 網站位置
+
+* 線上網址：<https://jessechan27.github.io/Grade-review/>
+* 原始碼：<https://github.com/jessechan27/Grade-review>
+
 ## 更新成績的步驟
 
 1. 在 `Grade review.xlsx` 填入新的成績。
 2. 存檔並關閉 Excel。
-3. 在這個資料夾打開命令提示字元 / PowerShell，執行：
+3. 在這個資料夾打開 Git Bash / PowerShell，執行：
 
    ```
    python build.py
+   git add index.html
+   git commit -m "Update grades"
+   git push
    ```
 
-4. 會重新產生 `index.html`，把它放到網站空間覆蓋舊檔即可。
+4. 約 1 分鐘後線上網站就會更新。
 
 > 每次執行 `build.py` 都會換一組新的加密鹽值，這是正常的。
+
+## ⚠ 重要：不要把 Excel 上傳到 GitHub
+
+`Grade review.xlsx` 含有全班的明文姓名與成績，而這個 GitHub repo 是**公開**的。
+`.gitignore` 已經設定成自動排除所有 `.xlsx` / `.xls` / `.csv`，正常操作不會誤傳。
+
+若要確認，執行以下指令，結果應該是空的：
+
+```
+git ls-files | grep -i xlsx
+```
 
 ## 成績計算方式
 
