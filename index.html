@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>成績查詢系統</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* ===== 課程名稱請在檔案最下方的 COURSE 設定區修改 ===================== */
+:root{
+  --navy:#041e42;
+  --navy-2:#0a2b5c;
+  --red:#bf0d3e;
+  --red-dark:#8e0a2e;
+  --ink:#10151f;
+  --muted:#5c6779;
+  --line:#d8dde6;
+  --bg:#eef1f5;
+  --card:#ffffff;
+  --good:#11734b;
+  --cond:"Oswald","Archivo Narrow","Arial Narrow",sans-serif;
+  --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--body);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+.wrap{width:100%;max-width:960px;margin:0 auto;padding:0 16px}
+
+/* ---------- masthead ---------- */
+.masthead{
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.06) 0 1px,transparent 1px 9px),
+    linear-gradient(180deg,var(--navy-2),var(--navy));
+  color:#fff;
+  border-bottom:5px solid var(--red);
+}
+.masthead .wrap{
+  display:flex;align-items:center;gap:14px;
+  min-height:84px;padding-top:12px;padding-bottom:12px;
+}
+.logo{
+  width:46px;height:46px;flex:0 0 46px;
+  display:grid;place-items:center;
+  background:var(--red);
+  clip-path:polygon(50% 0,100% 28%,100% 100%,0 100%,0 28%);
+  box-shadow:0 2px 0 rgba(0,0,0,.35);
+}
+.logo svg{width:26px;height:26px;display:block}
+.brandtext{min-width:0}
+.kicker{
+  font-family:var(--cond);font-weight:600;font-size:11px;
+  letter-spacing:.22em;text-transform:uppercase;color:#9fc0e8;
+  margin-bottom:2px;
+}
+.masthead h1{
+  margin:0;font-size:clamp(19px,4.6vw,26px);font-weight:900;
+  letter-spacing:.02em;line-height:1.15;
+}
+.masthead .tag{
+  margin-left:auto;flex:0 0 auto;
+  font-family:var(--cond);font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:#9fc0e8;text-align:right;line-height:1.5;
+}
+@media (max-width:560px){ .masthead .tag{display:none} }
+
+/* ---------- panels ---------- */
+main{padding:26px 0 60px}
+.panel{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-top:4px solid var(--navy);
+  border-radius:4px;
+  box-shadow:0 10px 24px -18px rgba(4,30,66,.55);
+}
+.panel+.panel{margin-top:18px}
+.panel-head{
+  display:flex;align-items:center;gap:10px;
+  padding:13px 18px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,#fbfcfe,#f2f5f9);
+}
+.panel-head h2{
+  margin:0;font-family:var(--cond);font-weight:600;
+  font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--navy);
+}
+.panel-head .cn{font-size:13px;font-weight:700;color:var(--ink)}
+.panel-body{padding:18px}
+
+/* ---------- search ---------- */
+#searchPanel .panel-body{padding:26px 18px 24px}
+.search-lead{
+  font-family:var(--cond);font-size:12px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--muted);margin:0 0 6px;
+}
+.search-title{margin:0 0 18px;font-size:20px;font-weight:900;letter-spacing:.01em}
+.field{display:flex;gap:10px;flex-wrap:wrap}
+.field label{
+  position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);
+}
+#sid{
+  flex:1 1 220px;min-width:0;
+  font-family:var(--cond);font-size:24px;font-weight:600;letter-spacing:.14em;
+  padding:13px 15px;border:2px solid var(--line);border-radius:3px;
+  background:#fff;color:var(--ink);
+}
+#sid::placeholder{color:#b3bcca;letter-spacing:.14em}
+#sid:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(4,30,66,.12)}
+.btn{
+  font-family:var(--cond);font-weight:600;font-size:15px;
+  letter-spacing:.14em;text-transform:uppercase;
+  padding:0 24px;min-height:52px;border:0;border-radius:3px;cursor:pointer;
+  background:var(--red);color:#fff;transition:background .15s;
+}
+.btn:hover{background:var(--red-dark)}
+.btn:disabled{opacity:.6;cursor:progress}
+.btn.ghost{background:transparent;color:var(--navy);border:2px solid var(--navy);min-height:44px;font-size:13px}
+.btn.ghost:hover{background:var(--navy);color:#fff}
+.hint{margin:14px 0 0;font-size:12.5px;line-height:1.75;color:var(--muted)}
+.msg{
+  display:none;margin-top:14px;padding:12px 14px;border-radius:3px;
+  font-size:13.5px;line-height:1.7;
+  background:#fdeaef;border-left:4px solid var(--red);color:#7c0b2b;
+}
+.msg.show{display:block}
+.msg.wait{background:#eaf0fa;border-left-color:var(--navy);color:var(--navy)}
+
+/* ---------- name plate ---------- */
+.nameplate{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:18px;color:#fff;
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.05) 0 1px,transparent 1px 10px),
+    linear-gradient(180deg,var(--navy-2),var(--navy));
+}
+.jersey{
+  flex:0 0 auto;width:64px;height:64px;border-radius:50%;
+  display:grid;place-items:center;background:var(--red);
+  border:3px solid rgba(255,255,255,.85);
+}
+.jersey b{font-family:var(--cond);font-size:27px;font-weight:700;line-height:1}
+.jersey span{
+  display:block;font-family:var(--cond);font-size:8.5px;
+  letter-spacing:.18em;opacity:.85;margin-top:1px;text-align:center;
+}
+.who{min-width:0;flex:1 1 200px}
+.who .nm{
+  margin:0;font-size:clamp(23px,5.4vw,31px);font-weight:900;
+  line-height:1.15;letter-spacing:.01em;
+}
+.who .meta{
+  margin-top:7px;display:flex;flex-wrap:wrap;gap:7px;
+}
+.chip{
+  font-family:var(--cond);font-size:11.5px;letter-spacing:.12em;
+  text-transform:uppercase;padding:4px 9px;border-radius:2px;
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+}
+
+/* ---------- scoreboard ---------- */
+.scoreboard{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  background:#0d1a2f;color:#fff;
+}
+.sb{padding:14px 12px;text-align:center;border-left:1px solid rgba(255,255,255,.1)}
+.sb:first-child{border-left:0}
+.sb.primary{background:var(--red)}
+.sb .lbl{
+  font-family:var(--cond);font-size:9.5px;letter-spacing:.16em;
+  text-transform:uppercase;opacity:.82;display:block;margin-bottom:5px;
+}
+.sb .val{font-family:var(--cond);font-size:clamp(22px,5.6vw,30px);font-weight:700;line-height:1}
+.sb .val small{font-size:13px;font-weight:500;opacity:.8;margin-left:1px}
+@media (max-width:620px){
+  .scoreboard{grid-template-columns:repeat(2,1fr)}
+  .sb:nth-child(3){border-left:0}
+  .sb:nth-child(n+3){border-top:1px solid rgba(255,255,255,.1)}
+}
+
+/* ---------- stat table ---------- */
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:520px}
+thead th{
+  background:var(--navy);color:#fff;
+  font-family:var(--cond);font-weight:500;font-size:11px;
+  letter-spacing:.14em;text-transform:uppercase;
+  padding:9px 12px;text-align:right;white-space:nowrap;
+}
+thead th:first-child{text-align:left}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:right;vertical-align:middle}
+tbody td:first-child{text-align:left}
+tbody tr:nth-child(even){background:#f8fafc}
+tbody tr.pending{color:var(--muted)}
+.item-name{font-weight:700;display:block}
+.bar{display:block;margin-top:6px;height:5px;width:100%;max-width:190px;background:#e4e8ef;border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--navy);border-radius:3px}
+.num{font-family:var(--cond);font-size:17px;font-weight:600;letter-spacing:.02em}
+.num.dim{color:#aab3c0;font-weight:500}
+.wt{font-family:var(--cond);font-size:15px;color:var(--muted)}
+.state{
+  font-family:var(--cond);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  padding:3px 7px;border-radius:2px;white-space:nowrap;
+}
+.state.done{background:#e3f3ec;color:var(--good)}
+.state.wait{background:#eef1f5;color:#7b8798}
+tbody tr.deduct{background:#fdeaef}
+tbody tr.deduct .num{color:var(--red)}
+tfoot td{
+  padding:13px 12px;text-align:right;background:#f2f5f9;
+  border-top:2px solid var(--navy);font-weight:700;
+}
+tfoot td:first-child{text-align:left;font-family:var(--cond);letter-spacing:.14em;text-transform:uppercase;color:var(--navy)}
+tfoot .num{font-size:21px;color:var(--navy)}
+
+/* ---------- notes / footer ---------- */
+.notes{padding:16px 18px;background:#f8fafc;border-top:1px solid var(--line)}
+.notes h3{
+  margin:0 0 8px;font-family:var(--cond);font-size:11.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--navy);
+}
+.notes ul{margin:0;padding-left:1.15em;font-size:12.5px;line-height:1.85;color:var(--muted)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;padding:16px 18px;border-top:1px solid var(--line)}
+footer{
+  border-top:1px solid var(--line);background:#fff;
+  padding:16px 0;font-size:12px;color:var(--muted);text-align:center;
+}
+#resultPanel{display:none}
+#resultPanel.show{display:block}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+@media print{
+  body{background:#fff}
+  .masthead,.actions,#searchPanel,footer{display:none!important}
+  .panel{border:0;box-shadow:none}
+  .nameplate,.scoreboard{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round">
+        <path d="M4 7h16M4 12h16M4 17h10"/>
+      </svg>
+    </div>
+    <div class="brandtext">
+      <div class="kicker" id="brandKicker">Student Grade Lookup</div>
+      <h1 id="brandTitle">成績查詢系統</h1>
+    </div>
+    <div class="tag" id="brandTag"></div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="panel" id="searchPanel">
+    <div class="panel-head">
+      <h2>Lookup</h2><span class="cn">學號查詢</span>
+    </div>
+    <div class="panel-body">
+      <p class="search-lead">Enter your student ID</p>
+      <h2 class="search-title">請輸入您的學號查詢個人成績</h2>
+      <form class="field" id="form" autocomplete="off">
+        <label for="sid">學號</label>
+        <input id="sid" name="sid" type="text" inputmode="numeric" autocomplete="off"
+               placeholder="114000000" maxlength="20" spellcheck="false">
+        <button class="btn" id="go" type="submit">查詢成績</button>
+      </form>
+      <div class="msg" id="msg" role="status" aria-live="polite"></div>
+      <p class="hint">
+        為保護個人隱私，本頁僅能查詢輸入學號本人的成績；每筆成績資料皆以學號加密保存，
+        輸入正確學號後才會在您的瀏覽器中解密顯示。資料不會上傳至任何伺服器。
+      </p>
+    </div>
+  </section>
+
+  <section class="panel" id="resultPanel" aria-live="polite">
+    <div class="nameplate">
+      <div class="jersey"><div><b id="rGroup">—</b><span>GROUP</span></div></div>
+      <div class="who">
+        <h2 class="nm" id="rName">—</h2>
+        <div class="meta" id="rMeta"></div>
+      </div>
+    </div>
+
+    <div class="scoreboard">
+      <div class="sb primary">
+        <span class="lbl">目前總分 Total</span>
+        <span class="val" id="rTotal">0<small>/100</small></span>
+      </div>
+      <div class="sb">
+        <span class="lbl">已評分權重 Graded</span>
+        <span class="val" id="rGradedWeight">0<small>%</small></span>
+      </div>
+      <div class="sb">
+        <span class="lbl">得分率 Pct</span>
+        <span class="val" id="rPct">—</span>
+      </div>
+      <div class="sb">
+        <span class="lbl">點名扣分 Deduct</span>
+        <span class="val" id="rDeduct">0</span>
+      </div>
+    </div>
+
+    <div class="panel-head" style="border-top:1px solid var(--line)">
+      <h2>Box Score</h2><span class="cn">各項成績明細</span>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">項目 Item</th>
+            <th scope="col">分數 Score</th>
+            <th scope="col">權重 Weight</th>
+            <th scope="col">加權得分 Points</th>
+            <th scope="col">狀態 Status</th>
+          </tr>
+        </thead>
+        <tbody id="rRows"></tbody>
+        <tfoot id="rFoot"></tfoot>
+      </table>
+    </div>
+
+    <div class="notes">
+      <h3>計算方式說明</h3>
+      <ul>
+        <li>各項成績以「分數 × 權重%」換算為加權得分後加總，即為目前總分。</li>
+        <li>尚未評分（無資料）的項目一律以 <strong>0 分</strong>計入總分，待該項成績登錄後總分會隨之提高。</li>
+        <li>「得分率」為目前已評分項目的得分比例（已得加權分 ÷ 已評分權重），僅供參考，不是學期總分。</li>
+        <li>若有點名扣分，會從加權總分中直接扣除。</li>
+        <li>本頁為成績進度查詢，實際學期成績以學校教務系統公告為準。</li>
+      </ul>
+    </div>
+
+    <div class="actions">
+      <button class="btn ghost" id="again" type="button">查詢其他學號</button>
+      <button class="btn ghost" id="printBtn" type="button">列印 / 存成 PDF</button>
+    </div>
+  </section>
+
+</main>
+
+<footer class="wrap" id="foot"></footer>
+
+<script>
+/* =====================================================================
+   課程 / 頁面名稱設定 — 需要改標題時只要改這裡
+   ===================================================================== */
+var COURSE = {
+  title:  "成績查詢系統",          // 大標題
+  kicker: "Student Grade Lookup",  // 標題上方小字
+  tag:    "",                      // 右上角文字，例如 "114-1 學期"
+  footer: "成績資料來源：Grade review.xlsx"
+};
+
+/* =====================================================================
+   成績資料（由 build.py 產生；每筆記錄以該生學號加密）
+   ===================================================================== */
+var DATA = {"salt":"acc826d52e4b21f5503c7e663a3f5a81","iters":60000,"items":[{"label":"口頭碳排","weight":30.0},{"label":"口頭簡報","weight":50.0},{"label":"九宮格","weight":5.0},{"label":"心得報告","weight":4.85},{"label":"ISO14064-1","weight":10.0},{"label":"學習單","weight":0.15}],"records":{"22f0c6120f192f83724f77fe88b569971fddbcff99a536a5e7dfffbafde2f37f":{"c":"11a2cb1065b754c8ff1370f66ba1f87a05509734ed5b3bb6f7f66f656fbbbb4231c19dbd9506f3e4a8d1af045253e65e5ac5b4039e8e7a39990199099f5fe336b4821b014bbff3ecfc1f8bfe547c5533963a1ed2e692830ec89977cfc501acc1e7e5800487df747cdd80b0b69993b06f980fd4b8afc2ff351375c248106fa4b83998744722a39fe0a183680bea39e98af5c0","m":"0854020d2330b2cfd6c46831809e63ff"},"fbea702d1c479d00c4ea14bc799cfce90ff2e2735448b5c487c6b07b8d4f8c3e":{"c":"314c89af5ac803fbf93f307473af97dae6c9ce76fb948f914ebb51a646a56bc0312b4387fc7dd16b5cc13eb8e5efd5026ca5d329f9a38ad99b76715fb12941ab2b2683a25116d4b8890be8367ee27ecf1005543cdfc028f5e83f1847b9104229a7fc6235e58b15a06902b00280d76cee61cd16cc20887b39b8e22cd2820b8cb77f3b944ad73bcb7d7f123404ddf253c5d42481","m":"29973ecf4a89e57900cf1f06b9106b7f"},"4868b0f2dc12863cf3e6a548da51068cf5cf0fb50a9623dd58d89fdd499d987d":{"c":"6577fab9af0c631003ebeb9e309582fbb8ee05b96dd504390f9abc50624d09858da32f6edde1999e445471d6b109703439ba2dea90c056e03111cfb2cff3f60ac923ecf7d0e2be659909d3f64bcf021cf5bc4b4a891787c3038ae9421f0054a0586c3c9095864c3ceb887b2232adb02823dee7a66af3c1be02292f2bb243916f96b6dd0dd4e3a418fcb192f6756b001c9e53a4","m":"7e80a423abcade2f49778f31df9eb1de"},"60db08cd94b02273f0e11e233320bfc0523b842ce6eee0a482c3a881cb98280f":{"c":"e486c00f3ed35db2e2bfd99ce5fe839f2fb22f57e41738a743b22cadbb4e4464843fb87828025f0613b53c0a3d4c15bd036032c8e0cea4349e21c9584131a94ea9c6f5781ba14d6585266983b4ecf98095557ecaefc95bc6ba0601acb926d064c215999fb0b17afa4c39850b06dafc2c05da706a3d55d22d409aef49eab78780ca1cb2de2768cb52561dd38d2a722ec72b15","m":"a7bafbdb2b42e0b84b35f5f36ede6a5d"},"571b1cb0cede0eb909400e409e5923ed0382bda344c1eda96ac664e4d6412aae":{"c":"df91dcd9c52ee9de7f30f9dbd6f938f9eb4e2730e9f47c54a8838486c1a0229afd7a4bb642d8f13304b8590ec67014f69955d4a6fd8764d429c4568007058164f5acc9ba0994ca24cfa567cd3ec32619a9b3aab03ea6c5e76f8e2348220d6c0eedbc31a0a229450b61d3d8c80519579145b5def017497ccb132177b44ec4890e2ce3195843cd4f431670ec71c2a27aa6bf68","m":"ad965a89b3e00745e0c2f828add5ee55"},"ac2614be77d6e8a44c5c978845ef4538e9fde9c072ce04b2f90b5b77a07a2f7d":{"c":"eeb6b96f8b64ac7d3f587c54e668d37d73275e94a2c1ba0d718bfcce41cf6e9056a09bc96376391995dd51912a76e688c101d3a58230f3b22c61e4025d9edf6d1975172cd1570e2ec8c5b485f39887bfe96d7866e7ea7cdae77648ec7a7f0fec3fadddaa2fec09a763ba9cd29d29168eb11328251277f68b2adedcbe296e30273a7578213b03d519699397d91b08770f25","m":"ec6bb5e60698c11ffde9416700df3bae"},"f0cfa7f9f60370cd04fe6befa795ee74405546266561791d599e5e0ead5d21c3":{"c":"c0ecf7e237af4fabdbedb05af6b08f2148c57d1d836dd3f6eba5d6c50697248aa90a6afc56f76b5d9e4cbd4723171a389097c6059f14515cb7d1e82af157bf8d827207389bd72dad3dc035507bac811116fa7ed0e35e18c739a1300fb1db93b5d45de8a1ed5b80bafe6059bed845a6d844235be6a3e8d48c7fae144ff60683eaf17a37b5ca4d73f6ed6f28f816e601d55f10","m":"d91187444d7fd2f116e6c1b92851927c"},"bd780f0768a226e84ba36386416d0d4319ae3487e1f513b0b850e5a6e178e40c":{"c":"c44cdc3fca326660f8c48ccfaf961ad03715ff2da9125ebc9dc784fa4aa3787d1dc1002211ac6d98e70bd0fb33d75a49a1d1ddebad92e35fa68d927b49425242fc10b6651b8ef1a3238decd175f9baa180b2d209420e56291002b7a62419265161d93dd0a9fe81004a94b20d8567f3ba0a29387f6d95d11814263d8b730c06442784aafbc76f95b1b39f5ee58647078822f3","m":"bbf3eb11be97e8d7ba4d748415412b5c"},"4989736734c0525147eda21da5aa8404cef019adaa1f541174a471a35428515b":{"c":"045a2a95f2dc5b6528201ab2fd365fe316ee530441c91b4379e05906f9aa7b93b753fd54650873a71ffca0c8073476d06c13520d84fec3685216561f622d77326ad8d8bbb8fa18f2038ed3ab17a58cd6f58383c1e2c61d1fe777a577213a2e7a8c0740046459c0a807d8a645fdbfd264aab2ff0e5f890ec511894f4ea7c21bd4178d0fa8a6a0619d87e2a4dc975788db","m":"1648ef28cce11984853c0166ab591ac0"},"b5a2625ea18cba0dec905741205fb661fc065437d205384cccc29a895f547d88":{"c":"070bc31cdd1d57d36d44e44d2d6007c75a64aa1dade159209e812a3f1a487f57b7e2ac0a00a8a4d873b091819143f0a149baaad42990872e634614fef4bb0642f4725d29cf0d2905ff3514f32e007abb74c60ebca185c735aadb6a545fe5548d64431279023d856ed3f3ff705d582104d688f27af6b3e662ef0cad28b785236db510519736b0fa6af2b24b67479299517e","m":"31a9daaf9067be158b1acad5e73466be"},"53407226568b90d2feb86758f80b6a959daba8a4da29f2ef42690a29d7abe4b6":{"c":"b2c5c1ae8b69fc049401eb2e5d4c0edc27f73cb9f75a11dc9a7648586d9767081c6b026aee91056c54e8aa3a7a1fe26dd415f0f71b5e44aa60d794fe3057483d119eb49eb93fa1690b83e369206d07a5cb4c2c3657dcedc34c3b4f16d1d3511d58ae6cee1f1c1b52ec3b0f84f420498de11901fb0ec32a7e09b25adbdb1dd4e052e1403fb957d0faf24a5db3f39a65e476d6","m":"2205f6ebae4ced2a5684feeb8e68d276"},"f067bb9257b31b581a2d96c4b34f6832f062c025a7cd0f15057225fafd8925b8":{"c":"6d782d517c9365305ccaba407d1db5c31371d899d3c2652ae50877e896cf5cbc568a98d6a2f0339d066a590eef7463c8f5e32d32d83e13174a7bb1ce9f41fff28f687223c8526dcc59fb6c5ee8b00eab44c5393d025219f44733db6c6df2dc040199b48121637827cd210cbce46c3de381590a238e435cb9ae99bf597b10e38229bdb55d4c4f7ac11563d6a670cc63a94676f4","m":"664776c63e5377b495b281bcf8c54df5"},"9b97f4098cede36fadf1da6d6d92aa16bf0d291a288e8a1b40dff4439d8f88c7":{"c":"db1b6de545cd6b52782d3ea52612b665e9e80927c67a35684ea64cf20d4bf9b3800dcd37a2841e606cc66532a83ddf31dd92b99c76e6c27a8945d867867f50c0b1ea0406b7e567e7b6e38bb843d724d4d50772929913c02e8a641009c17a9963bf3ed96f9bf73e5ec286215c802dbe1bca47d168926ec09b90f1975f4d797b239771e7432d2070442bc8ee45676d43dd59ae","m":"b0d59eeaa1ff0073c613f9ba09753f76"},"44ce36680c145b064c3b3e553b8c86ada11c34c8907be0f0c909199285090ba5":{"c":"1c0a5ef63cb94cada771c81162ed8554b853b9c02cde7ab5e3391d8b76c70c2f58947c56c44a280295d7dc809a1cbdc8fc958b62e12d9e1dbf5e21f908e342342b17aa959b05d00995c9bb4d5a4c2efb3db74d148a02445465aa9792749a130d99baa45fc62fde8a711e1d738c0f3399ca9a800f8c8479b6028952f739d44d5e49d7c9642a3dc01845fb87f6def9dc22cd4e","m":"cf154cdf411771153a5528cf4d4d279c"},"1827ab13bf4ab3a24fabd0f08cd510438aabff6e0470e5ff197a14342a1202b4":{"c":"dfb90cdab69ec9d4d92fbac9c0350b81bc15b35c7173305d127442f5ee46cc668cc5965b364114fdf9b0670e1ff67a45fc809fc4d3912f93c4e5ea2c28abdd44d0498c7c944bc1bea8d86797b7521d84efa16d62fb4abdb2d9ff52897c666dfa1cabfc895961c323c8b0f7d8eded6592de8e93a4d49429de958258235e574ad09568d911a322e8308b3191575817e1c6c887","m":"0beefc6a7e1ac8a038410ea15b7e4d13"},"f6f938eb9b8bc5d468782f9f52724525012f2cdae2a17f744485fe709eb9bc20":{"c":"88913bedcf645daf87e4563d58a62be8fd3bbf9b7fcfe7cf0fa80553b1ac672406aaabb96f6302b6c38af2ef39e83b8cf53966751c99c84333820cf4caf60cce85b14f474c58a01446d0863b0e92d56cd6b98071dfdec5283fc1bdf52d160b169fcb83717db127de81995f8b53a8f9fd19652955464bd570f57b8010d9ac229f74ca169616c4b2b720ac843db22927215041","m":"270838d4440b49fd06488e02f3370918"},"51833f18dd66659588241d913669f0761e3f630b5194cbea9eef2fe799c04e49":{"c":"f09f49315eccc00a7ebacd5b243998037263bbfe22ddba51f8d5570197144bc5b205346babac5eec2eb6509f615626cd613e7f5d8f1af709cfe579cbe3fb0991207bbaab0e144916fbcadfbf0f386b580421ee9007809b4b7dc3a954f5a403437b268a0fbe221e4172093d84fc19680097ba019c8e4af00ffc43194e4342000ddfdb2d9ed957c656ac224f551e087f364451","m":"99472f836483c72f5f7702726b9ba3c9"},"58f8ef1b7172629687604c7774ce63438c50669432cd525f56e9704e19a9efcb":{"c":"ff56fa600b14652925cbc24a569b8420453b1794c51e417d59ae167bb8ba0cb087fcf20ae6822a386e06f3957b9d2b340ec654f877812ea3a6cab86e91cc6433dbc4e9290d1914383e4394e7cb33706705bc6d343ee77f0366e9d6c2a55c7e1019890f08f797c44314cff4f34830a6dba95a63863fce0a809577ad89b8c6583c312a4d25516472ebca41c8b4191216824c41","m":"25ba636f38ac5f39ff06930d69e6f323"},"e0845f2d7ecbd9b129e00c0c1b4c821d177b830e464826c0ec575a5a43a57d17":{"c":"761e4e3de54b111aae35e12ee39619f7cd632cf783429d6a98a25aae1d7e2a6f90c4fc798b7e1f4dbd10a79d19f3bb2172610dc7d6f86da578d298c148a0f914747d47b6793d5078e931fc155924f8f2828b17a96feec5159fea4183a69f02211515f8c262de960ada7dee99cc1f4d912f18e4fabefb03c836e3a6b9b8c151285c5053bb4dc953b2aae31f02e5ef77e3b3fd","m":"f77f439df5a953916da7bb01833a526f"},"28057656e1cf81514ffd2fa2fe42a337dbbe34818c44d99495b78f0efef2646d":{"c":"bae4efe1c329e9530b7dca7d6f43bb3e2031511c691e1dcac7a101a1b6cc4062813f8e3365e8b65537d063a909e00775d7f27cc73b2b2a6cf5eb3be50d88f790eb979fbbf60965d320cd3d438d32c557958ccadea4dbeeb9291f5466a99c641ef35852c114e09f92eb01c68d33a45c1805cba306482499e59f08f58797a1e3ec2b032742e7449ea5245f2cf612f41de9fbff","m":"7922a9e9c5db44168c2362969747c619"},"3bfd307c23f01a7bea95e2d0d65978bcfbb2fb72392cb9354ade50eef064c569":{"c":"c705b74dcff33b0524b7da8716eb785d7d46c4107cdf230082790b86ec9638fb8d4a55658272f644f329d2d88f07c0c60227d01d6604f8a67d53f6056785c076e9ef88f501667df413d4f8d73987a84397fbbf25fe555a8351775be37f7f825d433f54aa12928c1fd5679bcef0c62adfe90194d3ccee9dbfbf65320ebcea7c6ed189b06f6c5034c898bef5127fc5c1ce68c4","m":"b40b916607df5c06f24040e0065c7992"},"11519247bd5d6ce28d48b02b26c37f581e751dec7e17637e7a1e783d09f9c656":{"c":"9239a190a3d0e4bfb8285d9673e71abfb13d26fc94908867b4479624851d14a0ee052b077a4972490f6f785c0b4197c0b8ad1c9622697a854a74cb0b7c49be7420378c5722778bc4ed09407ebe6d6492aaa17e93bd56ae79e20c59ac97c1d198a87e288095508af3d6a2d50b6bfe32503c6ea0a44bddba0c6461cb11d4230bafef693466feb5c9fbe827082d97c01b7255ca","m":"736387f154dfc8cf5b9764e7fe666ef6"},"16502b8310b15be8ec466d6d077e2369ae47213a9a306d0f870291ef19d7e7bb":{"c":"c7a6f5c33cb872aef03e5d65931d5e9f2f98d85c4c2dfa7791f6a0e307ce1b5f72f7737c2998c88e5af357a20ed683b2010b5a58307993cbf3ce785d6cb3273c89aa6db03546e82de89b94d9b7fc7a865c537253d87800d6affa6b9f1558a838088c2c0a1d0b98787c21265bb6bd32872cd8a2675328dd6bbdf31bccf04729586e1c0a02d0f183789e83203583efeff13b04","m":"32217b2c6d27b4e93c4bc361a5522f08"},"318b16a3a53848c677accc7ba2883ab3428d70489fe2a9f3f2b8720dc587faf2":{"c":"40c0456009947b7d0fb5618d15da6632a70202e0160fdbbac1521bd2075ecdf5ff5392c8488837ea860a33dfcaf5e50fa26d672823340b2ce002a99721826b2aa8641f04f371b9c2b73989d0d3d76d50ae1188421c0abdd87a34cce5cb36651d67d7e61137102bf24820fb77cb2340c29bca1acb3248520a291cd8242c21dacaca5f5fc3d6678afe934c3ec4412a7c5f65a3","m":"5eaf9b7550085bbb3bd71a21742efe6b"},"e703d04b10b9a295f869a2b24f15fdf4be36718f785b791120024e44d5b96941":{"c":"9fd49aafd985c0a85247909508b26aa8f0d850b0e96a6bde3547e780dd70232e0ff9ed50ee66094c91fd56f152897b33718a8f5ccb0b7bb9241d2fba77d9f1204d31d5aed560b451101ecea76c9a816d115b236add54bc17970de750bcee298448fb065bc7a18d606aab7fc81dd0b5cacadb3b5eb63279d09f21c317c2c3834573579fac9e363e232795754e2460666ee3fd","m":"7bbe226c22958f42f9721500770908eb"},"578e104e31d007a11a3b7e98fcfaa71147b58442d8f7487e743d29a800f3a57b":{"c":"eff224ca704ef2fe26a3d46dc07c6be27489acc5da76c5a7e558168a5e4c2e90b779172078681bcf2884a17355de0de839416225c4c34f2e3b9ff6e5c2a1a9bc2ad8f588ccbf94a2bdd47c188cf7d602dddd6c647e22fc990dbd686bab36b25f05dc9b6e061c99e035f65f6bfa074c3f1061be54893a68404679f7a77483a0888fd9045d8a9336b6408f15e9012419f00a06","m":"404d4758a65c5790b9f319d3d4532616"},"852459afcd979dd80d8022c4f3f8655053d3ce1403501a12609b71ad9c69a386":{"c":"03d8fc3b8b6979298084eb8a393cf1ff01bb7af8a309405dce3fa8392a4204307c6755b1e7d30637e3ddfe9a8ceb0a97f33d1c9d56fd846bdcda5043eb88f7bbd1318d04989f4458575111bcf6f74917fa1a85cad0428a3f47ab2a43ac723713c1e9f0e7ee9da318a4a12712610f53743c591ab6c8110afb150c6d7dc8e60e56d73c5691c6fa212267bcb93a3eba474bfa98eb","m":"4e63249447b45e22d1ef7ebb7328ab80"},"8534aad6f6c236adc4c03ac28140c25717756966cc6e718d8e8bc181f332d4ef":{"c":"d0f55f1c2bd6b54491d3f0e510d791339ce0a8be98f62eba3c15b09842ebe4288cc6fbab3024f667eaf12946e9928463f8c9866b7a2f5a3af065b6dd274577ff53ee23ca6a0f5f733c2862192fb987d19b5195c5b63847229b259e7361847960b3ff9d5ae9aa23990d6a8c0f6ecb31a7533acd4c67b52abb7a2a85a5a4493735cc570f96e8ad04a13b50ed6e6ac69efffe1b","m":"d1bc17bd3188061048408d32d9f8ee99"},"cffa862decbd5cb70027ed7a1bd900f61fc5d05579cda4226b96b7b164fba000":{"c":"a8464911af3c481dedea813a631c70421f859d8c1b5f8dcb7075b8b50327cdf923d1b5482f38d7f2b43ca228b32fd18c2bc7813814663ee35ed0c965334725883b762cb8775cbf8779b35bba3a36c8ef62819c4636fd68d4d6452a3bd8aafbf2725b61700abe934b8e2fee32236ded960c827eee1dececb39e533b82c5fe5e6d1a37bd0840365cf2a260323e979db0932703","m":"3fb18ec6034f2360bfd53d7c69c13011"},"74f09ed6265a3fe17c35d5e187e6b5b13f4a9321c9591c935131ec3c6c7561d6":{"c":"4d9251b1a69904f91d1fd02b9ae859cecd0e4205de3917a17e5ad0238f3e4f9f85d29d713b35572f448f1aff9352d4e6ce44e7a672ac899a1dfc532fec36c9105037f072935d5536872fc15245e521ba7c70dd8d3813e5f64df174a0f700bb566e464f14b1d6eb728408920eb2869dd740a49bc25a472da65381586c801a8587ed81d7ec0932d1bc54ae67f346850ecbfd60b6e620","m":"693c32ac4c10b63653a5259c012fb1f3"},"fe6bb4d830ef72bfbfe306789a72b683c04690375f10297b8c099f2e4d2bba79":{"c":"d4c4c7e1fac148efbc04fb3d41d3c17b0e8d39213226ef3f292a926fa3dd769cb802fec42c8e786b408d80f094f305cac4e98456cff1e8928113f30ee8e2602e0ca0ca533dd3c0579f0d5e285612262fe2778783fab76c3fdd2267a045a1b28a1579736ae9a98f0887887e4611c93ec709b8ca15ea45ce517b1ab5d8cf43fd53d6c47e8a04cb792517a38676a82b38c632b01c17e3","m":"89623b027c0abdd1b2113993379d1052"},"0d7708e5e9de3bbd63dbe9017c59383871caa7d558816e4871b1489fc98e8659":{"c":"dde1efd6cde7f9c5618aafa54c1133f8fc77797989ca3ba9ee50798bb2dae8bc97007e56d963b785c1aa6214b976f711ef404a89a89a77ebd59138e4e096f857120e85ceefd6b0aa16369702b7735c439db96c24f496d2cf1cf9b27763ccfa3459ed6cb55fe4515107b25ad49e863ff34e7ec67bebbef17a6e03f8ad20dbdc9b1f84b3fa27d9e4673385a1bec340d5ff653190434d","m":"0a0f89dc58803a3cf6746474188ad7d5"},"8dbfa1eeb575e5856a6f0851c139e8d7658b63e7191fab791ce21181f0ec87c5":{"c":"1bda7918582c2db8caa92c9da0c781366e0da392ff9263e844b9ecd6bbacb13e1fc45ea9ca4e750dd8a6b109f7c302686a85808292c5736828d043b7806d50db6e41ed7138c8396e7add426a7109065094e3bcc9b25b4de4b351a88b655f2b6ecb0893802f5d944298911b2648caa5a953863e053fdeed3e8524b024996ebe065f5d6435a901039f279d103d63c8d96968b677c4","m":"914c243cd5a92e6587818351895ed171"},"a617eb3d4288662561d76401fc74c07b43c261b0abe0a0d1d2669e4be0028a55":{"c":"eba3ac64b3a981f1204915555444f226eee68523496eb7aaec4b99c08cc6fb08f1fc361929ca6b102140daa965aea4d02687028aac5f800e2cecc5635da75f5fde86aa69b22656b4ec1bf62d20f398f249286ad1b8699a07cdcb84798e9a2d552387803e5408ddfcf277a95cb16cf261197d877bb25dcd30dcdc15a132e64b772d1be703b2de0138eb11b49911a3dc7b07d24fe54e","m":"7d5466bdf83ed139082bbd088a3d5282"},"8fc9af1bb211eb370acb59cebfd545be0b19413203a90da73c6eae2bf34c5018":{"c":"5e42f9dcaa217f8ee75c630ebffb61cef35f8f0336060cabe4cc18789df96fb27f006fe85a625ed3f8c0f69e5ab682ce30c4eeec054f9fc7c34314e5adc8dd7188bef94cd87e276e2fa172ece0a520bf0f1cdd3aead810998f1f10fc54ef30a3b26c51571aec27f35b9f874124d0a1b219570a813589a190198c0077528b4adffa39fff193d51714152ed74a29798640d35d5d398c","m":"ce4942ff69739649c81604572606bbb0"},"61707054ba6b6dca76b103d408c58136477afe51bcbcf48c1fa631210301a969":{"c":"b10cd14eecc8971ce0f97de2c45b0b93f8a4fae465e614b9902b57267b8a3dc14b34f375494bf57a98305a03cbbef4fede9799350e54151a8c7786fa3f94633a7ad5769ab370376c35617580e8e7bd599e285b5aae6abd8b054af1160eb6ba77275f66a8f26cb7642cac4409cb9d614a488acdda9a2020f2c516213ba207763da62ca5aba276788ec192eee3b59f348d89b94ac879","m":"908419bfe1f72094ba63ec190f335c48"},"39eb31616ea71a76db0a9a52f9402d80798157c30d4546ce86c926da98a932f5":{"c":"ca5240b24a8844f8eb313d606cc7a7f0b3a166e7d72383991386c6d4dc9aa7510387101c67e31a6c066bd9c7a6f1006c88822679a28a2cab5f02fd26e97a48ad9b9e4c815186efdb82aa059330505d06e2632c72cab506a1c09b63b22f6b67e800d31d9af463fafd0916ce9159ccd4536bdb93c706835520d0419adf4469789146e97eef3a86a60b0c078009593901cb1d1bb10ab5","m":"d339c8a92a4b168c597a3ade0eb8b6e6"},"5641e3cc38548c2c7f0ef7de3e1163f4f091de52e0346010b442393d1960a71b":{"c":"8af14d125f85f41478ae44d605d7c99ff1994d8ced81a1f050b7895211c36b97c1c2c3dfa46b85d5af380079b9f865c4598b2363a595e08429bd1072a58731e750cfeb4fdf86bd3a1edecd0498121f581439fe997ef76e3ff7b7a51a976ea4f874f0b5c8fb2a62a9fc0d14c371686d71323d3debcfd19dc88af8611c050ea7ca7c9e06a07ec6f6a507a48cd2cbeda4608006","m":"354bd7ad12d312edd37b6c929fff3ab6"},"dce61e810bb5f9aa498c0560a33cedd951b394c7acc6c596560efe145684e8b5":{"c":"9bdfc813b30e8cb0167cd1c3bd36476515770e5e70f3361c015e61abd674703feae9f02d28aa09acae57b909072fa2fae7568ee8c5886df5d05f05158b44c18af2ee48bbe69106bd595625d6be72caa4630c77fbf8541b38ce6e8746520a7bfcfd82efcf926c626332e37b8a70ba1284044801de1b5a2721a13b5b05ed556821ad42e108dfa30f531fd6d1e100298407d2f079","m":"fac43fc624a11f079943179dcf62bc83"},"c67edf83861b6da5609cf0b048f1b3e24bd375d9ca312c7f374693dada68ef4d":{"c":"148d28ff1977e73719ba54898d82d37d1a477eb6bd8bc5856e17848d1b32529c0a0b6fb05bece1eac14b8afd6fb8bd8638572bed529aaa99f5cb6e5ae646305778302db02272eef5cd4562eb69669833b092188aed3e1801ef9e495b81da80759e09463a40a172e8c8766328826acdc2b182ea86f8e5edd366914c62882c2e12ef51f2b245441fb12cec4ea90eec087e25","m":"41a17476e834a2f3f0580ecbca629d3b"},"c77dc0364f094ab6840ec835c960d599f737888b08e73635097030fdd7426c8f":{"c":"d2788d8a2b16902649654b67fd10c84a0947ae6cd8c699cd00defd6b7f83b5d2ac3e823c2311a51b3dd19e5297d553c27a89a3bed65354d19932bf90361163845c41f29813140a1b450b66e83e8dec474570fc55e1434f5122e8e86cf0d25d64e12108476b4e070e0e6d363e13fd0f630b49d78aa252a345ac84ba5c0f48ceed184492259c90b00e853496c8f907ce3e35bc","m":"fbb1c48eafae9e4acd1f8fc896db1f1e"},"39afee268b930c712f9b9f7f55120cc11c6dc3472c9ff9efa1d059ba119a37ba":{"c":"31912235d9259e65e19b685ecd1515410500467a1072eb5baff52ef411afc191b19cacda00531c05940c1dbc7f7895572f96b28408bd3c17d8164042f519bbf00355860ab18e1bc4d25cdd712971a099005a2728c81ba8b2cbcc738064e8734e0b341b8bd62d661e12f915491b6a7d7f23b48dd26a428a55ee52d0b038ad127e8c953eb363738ac3f8a05f0aab5f4eb77005","m":"7897c1fce61741d29254ecb370c46072"},"df48d4f815127c2eb2480b30d30adf97120dbab1bf74de42ab24175e10848c90":{"c":"8130b62b3c7a7199f8ec376df73cae25e04998dd62e6a06180fb495739be430e64f36e6111933d1fe28263afe211dc7d3c6511447ba7610e15ddb36093a820b90577fc2598eb566ddb257351de2b5b420a0dfea1790f04e3aa074d1f1fd0da2a0b1a7a7112e248c9490d30696c9739bd4714454e2b6e9b7159c090b72c868ceffb252e77a4442cae0219efd68aa9f1226ea7","m":"7944d9b6f2229c7c1db834dc0e30964a"},"e3fca354f7a0b1c186e994db834053be1301464a654dd5c9b74023ad15ddd04b":{"c":"198395b5303419dce1f653a58a258cb01f99ec7bc5c5955fda0e77290ee2200b690534c6260cf1e9f64760945b04de026ccee7acbd9ca95962b3b45590bbf0d6c769f4bf84ba525e0b268fb9e2dede05e18f7d80ad8420eb46b51f4003f0c3756a0735b54426c0d0a8d784a51c694817049a43399c1f7b1db89e0d3210af2466f1051d9ddfe7ba34ed0e7c22af8dc6e3f71a","m":"9e0869d389cb12f3a916a1b15aa4e821"},"e70954593d155592129be32aab4671730119569cdf8f052c57a4c74d464cb9b3":{"c":"b97e2e0c23e9e7f19a2817550fc5e690c5b77d829da8f632debab56d49141332fb6c67e5706519281913031a2b9de67bd5160cdec66cf777bf41f244098864460f5ff24a3164df48c607dd68de2a434760fa707396b999dd985c8c5c39f3095426002c277699ca0d1b8a2bcc6be47dfde1f12db028a9dd506daa9e2ee69e913788b751884067f683792c037bd81533ad168cfa","m":"515ff061f0eb4157f42e38f8ccc03d1e"},"434d303316a63a83a7852ec81cb465a58eb12a3a51519671b1e75ab42d158e92":{"c":"635c172ef69b78f0d6072be56f8046cbeef49936f51762bffdca4fb34ad08aef36eedb7ac7ad436f14c2697ae4c6e47e2ca85f9a5032a672c55d0de74f8efed20916e08f717764f1ad33efa78397a9db33138f69f738132e0fa1423f6ed829dcecf05f436fcf2e4bc8a37da3ecaa480a176b0b5072ec9dcc89f171f59dc5a4aed6444186bf73dce0a8145af6b35a7e172a44aa13b326370e","m":"942f947a26474bdb9f65691c90d3b0f4"},"1daa9ef84ad95e904df68ab2af4b3ef7a38c5fc386e83192d9c147b203e93628":{"c":"55b083a39338b5cbb4e8ca7ec0d996953c98d948fb8be0e59ce1f347399cb305b3b5ac1c440dc2885d9db5b773cff91207d78ca7bd8a66c2ad5f36e29871b6813419b0faa60aa65d7cdc3415d7440f052800a46bd56d81dbdab6bc6c55d482b69cf98c38b3cc3d149f1fa82601e9c2dd9af70a593d0cebff49942a67c26a931b71f9411d81d22a342bb4514d04ebdebb6ce8c14a0b","m":"6518f620e40e4ff18f7d961021e424ea"},"ee9d5cc252b4f89539492de4bcbccf8d2165da8c1b5f37658ae9901e36b3f733":{"c":"9881d0e0a74c2bf5478af3ed0755ad7fb2abc040eb90bab215f987f7fe49b149a7aab4a0763c89db7e99e10ce70f4e446a6bf3bdb29d09d615dca2fe2c40642f2fb284a1eb21a9dd98654d0697ca0f00b2b7d22bf8042b0f5c9dfde43e8d83d87ea77e9af04bff5c043c5e9930e53d6a9ce140b91a1752c62f9b3be9b531478cad6dbfbf7e4decfb1a4a35c377f0e02269dc9a0551","m":"5276cb964cbf352cd0fa404434e4766c"},"113b5a50fa0ed4b6983617127eb3c42b4b47b81395d6ad143460fa3f62e8dcf8":{"c":"61b27ee383079c26ced24092b1e0ba9d9f7c2428029afd8a1c33034db015ce1cb0a19fdd7df500874b326b9979f45a9660fb8a04c727fa169b783159b5d00bcfec0103f968e31c28749fedd321c5af876067f8f99b8b5e57a4289427e147d64c49b7f9847db876a7244f3acf90095172562a850474b4a0d8f4036ad23c2359cc1c41c28f585e49da0ef7c2924a9e26157eb0707a97","m":"39931446cff690ef13ba4fc1655780d6"},"ad266a2f3f12833eee2b4181837dda3e19983730c237ec41ca1d3d8ef28cc003":{"c":"381d0f0c2b7849d6d48eb831288a952b333d9e119e36555a0b55bbe5648e82dbf94aaf575652f68f7d64fd7ac68ceadb6efed2f5c370070305beddc63273bbccce14c84b0a88616d066b42d4c0604e44db6bda970104552f55f0c76c6c002a82061df38bed644f7c71027190c182da41642d35af32c82ed501e76ee86032125b81477153868e26f03a10ebc0ce0ae65c01d6cc3b","m":"058422eccb13333a782946fcdad5b431"},"d984945f6af1d6e3143cf002967577b4abe5c4147f2d4b0fdb9ac0064bfa9f10":{"c":"2fb319634faef4914cda9bf5ce08d3a3da9966c7fb96a8643950019a6a7eb560b925ef9f16ed5713f2c4519e1c21cb95c2cff4cc5fd351e720cfe112d69e9b99a4fb97fc2d9c3c0576a47baa48e3633e384d97a345ad0ff11a35bcf820e463fa38d9154f30c3c0774f271ad289f8d572059bfc4898f2339d5a2236bc97f00670986e276f8ef61c6d1cf390524e4c11d32ba3a39c4ded","m":"998c7e6721aa968f67d3565706555c9f"},"14c46c79e1bbab1bb63e82c189f41bd8c8efb6b4f9e16b3fee54ee6b28d1de1d":{"c":"fcd1a13a0f0eb294772a82a4e3e2556b9e031818ba703549537641436ab39ee2d28614a98120355fe8d7bd43ecdfddac2174ddbb610d8b9a12dc533d421bef7ebf709ac1643c07fd9247215e96472a00eaa4ef3e2816fd87f0f503a5401228716875690517cec41a526e8fb13f4eea6e2ea1bcaa26faa6b0adaa8d2fce03077fe7a0bf668239f34167d695ac9fb1a0352be3dc4f718aaf","m":"d925ef0eff23a1356549c05ed8040eae"},"9276e4557ef2e13868b273f0581cd061f177281e3a2894951726bf0035a27473":{"c":"b1668919f8608956b59c7a66999ba40a196b0bcf2ed03321f2c89f658f3c9c807f4a708550af3c1ceabc8e4f60d08c7a5fefb8dd252241bbf5357f6d25b6375c5e96ad7012e66f8249adae65b013be5aef03e6238327e25a7a459f1a928c94306f5abf49597226a25c055f9f8c283126e9e7d92f9eb3d0e8922c80b9702a3ac3a041bd11e4613c48fa68941073bab7dea7fca9afc070b125","m":"0cf9e1dc377ada8fc00c0ddc032f144d"},"a987c3c1a4fd6f8bd48baaf6b1fac925af6f01a083d52bacb7ec2fa804e229da":{"c":"8285b5de21b2315ff3b0dff3a210d8f905237e947f8b90fddaa906c05e55ba6f837a556c276bdbb5be069ada5818cc9ffdf223fadf02d3793c78e7b7175185d8c55453bfb03145a39e6198c599959b50e7916f2452fa6fda0b3b1bea82e7aef63d1024104860bef60c27082cbf4d1fab6ed868615a5bf2a2a2c32ee161490313f639105ebec67ad6d212a238aa395bbf28740b01ea","m":"9297714175a883f7afaad7b1de5bca93"},"270a35a4559a0137e469d56801bc96b3c089d065e892a6ad846b1ce79fc34982":{"c":"3380500c9e5da348972b959edf7ce21ba4848317123fbef2df050d1f908c66bc90dc795211fd02df954196e826848ceb3f6e25b80f01b0ad7d5a240928634595c41ad4d4f8ed47fea79701783130875b220eb02998e6975ba791035eb3cef696cb19a7a9d1bcc28dc701b60afd60ca6e8d03c67e57f83b05b444d6fc30efcd3db480cdfcb4e85bda857b5d26b632a278a889a89c10","m":"1e1d1a958c3a39cbc1f6d1a1d7788cb6"},"36e98f95d4896563b98133267e28ad73599c4c57363ea667ab4a741070ea70a1":{"c":"391158769d060378d581ef0541ac37f0a2b3512e38619c59d7681edf039c31cbb237a94d26952ebafea8f67f4eaf657bda38b2c674286d84ff71fd9a0db61ee69568aea85f890bc9eeed83649238fb35cc0e89ca49f24b5aa4da6d0907155bc1e19d1a1ece9c5c81217fa09cab71fccf1ed3e3cba750cc1ab8508d58919569f36df21a4332b8f69034af4faded01808270e38d4426","m":"f4fb622525e17f6596a2df41df4603bc"},"fe6500d923ebe932ee70aa53e2da8cd966e1b22fbf609b3d5caac7651ad082ef":{"c":"91c7f9f98357a2fdf0640cce860a8a09a7747ebdddfe852ae874b839130b79d4ab58bf0ddc07e08cf2b73b811ec55f0efee459c641f54e0cd826e59e43d325e599b317dab7f0d12938794e57709e5409632a540d928c455d38562b6004cc0cc750cd63d25404d9411088783c7694ca43b17c6582247c26e8c4ca1e93e9625dbe03f5380d85d20bc044f8464e595f21a04e1e918b7a","m":"052bc7d8e9b3c0c0dd4f0cd8f7f48c2d"},"b8023b2d9c8e708d9f4a5271765786a719f1d59c97e8bee2d031f242a1bcab43":{"c":"639f3e9e4460108ccc256b00c472bea7875c564a7fccd7093d36bb9299239f0142fd40402a572c2d339e71f927a9daccc618dafa86eb4ef9e20f13bf79f39c5625062226883991c93c3c22a9a45b9a9f4d727723e2692d8bc3a6321e5bb75ad744cd826fe19106c4a33da37236611e7ad1736fccfcfb203e9f28b2ddad53be337bf2c9ec672e16d21c1ae9f58d7cc6cbaaed52d23dec","m":"8b3a2354778315d442c424a1861b3d97"},"eafd4e86bb256f236e787d54cda1f1b50309207680cafa564e8ec7324e749400":{"c":"e4b70c60e5fb8b9422ce3fb12873359cbc7776c7618a424f08021ceb2cb68c26268e0eefc68cab849825b3321d80342b0ca0b1a2c3bd6bb47ef05165cfee90f3ca8bf3e5fafc997a3d8c8b5812936ca5a6186e68327197dc9baa75899d6b34fceffcdb8fdc00faa2b85c77b0f9ac67ba13f2e6dabd193d99f418ce6cf4b54db9cfde5cd8d0fe5c85a5995aec7a9cf95f958a5c0d2b","m":"2de1e9b460ed11c495fe201f00bb2a9f"}}};
+
+/* ============================ SHA-256 / HMAC / PBKDF2 ================ */
+var SHA_K = new Uint32Array([
+  0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+  0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+  0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+  0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+  0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+  0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+  0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+  0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+]);
+
+function rotr(x,n){ return (x>>>n)|(x<<(32-n)); }
+
+function sha256(bytes){
+  var len = bytes.length, bitHi = Math.floor(len/536870912), bitLo = (len*8)>>>0;
+  var total = (len + 9 + 63) & ~63;
+  var buf = new Uint8Array(total);
+  buf.set(bytes); buf[len] = 0x80;
+  var dv = new DataView(buf.buffer);
+  dv.setUint32(total-8, bitHi, false);
+  dv.setUint32(total-4, bitLo, false);
+
+  var H = new Uint32Array([0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,
+                           0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19]);
+  var w = new Uint32Array(64), i, off;
+  for(off=0; off<total; off+=64){
+    for(i=0;i<16;i++) w[i] = dv.getUint32(off+i*4,false);
+    for(i=16;i<64;i++){
+      var x = w[i-15], y = w[i-2];
+      var s0 = rotr(x,7)^rotr(x,18)^(x>>>3);
+      var s1 = rotr(y,17)^rotr(y,19)^(y>>>10);
+      w[i] = (w[i-16] + s0 + w[i-7] + s1) >>> 0;
+    }
+    var a=H[0],b=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+    for(i=0;i<64;i++){
+      var S1 = rotr(e,6)^rotr(e,11)^rotr(e,25);
+      var ch = (e&f)^((~e)&g);
+      var t1 = (h + S1 + ch + SHA_K[i] + w[i]) >>> 0;
+      var S0 = rotr(a,2)^rotr(a,13)^rotr(a,22);
+      var mj = (a&b)^(a&c)^(b&c);
+      var t2 = (S0 + mj) >>> 0;
+      h=g; g=f; f=e; e=(d+t1)>>>0; d=c; c=b; b=a; a=(t1+t2)>>>0;
+    }
+    H[0]=(H[0]+a)>>>0; H[1]=(H[1]+b)>>>0; H[2]=(H[2]+c)>>>0; H[3]=(H[3]+d)>>>0;
+    H[4]=(H[4]+e)>>>0; H[5]=(H[5]+f)>>>0; H[6]=(H[6]+g)>>>0; H[7]=(H[7]+h)>>>0;
+  }
+  var out = new Uint8Array(32), odv = new DataView(out.buffer);
+  for(i=0;i<8;i++) odv.setUint32(i*4, H[i], false);
+  return out;
+}
+
+function cat(a,b){
+  var r = new Uint8Array(a.length+b.length);
+  r.set(a,0); r.set(b,a.length); return r;
+}
+
+function hmac(key, msg){
+  if(key.length > 64) key = sha256(key);
+  var k = new Uint8Array(64); k.set(key);
+  var ip = new Uint8Array(64), op = new Uint8Array(64);
+  for(var i=0;i<64;i++){ ip[i]=k[i]^0x36; op[i]=k[i]^0x5c; }
+  return sha256(cat(op, sha256(cat(ip, msg))));
+}
+
+function pbkdf2(pw, salt, iters, dkLen){
+  var out = new Uint8Array(dkLen), pos = 0, block = 1;
+  while(pos < dkLen){
+    var idx = new Uint8Array([(block>>>24)&255,(block>>>16)&255,(block>>>8)&255,block&255]);
+    var u = hmac(pw, cat(salt, idx));
+    var t = u.slice(0);
+    for(var i=1;i<iters;i++){
+      u = hmac(pw, u);
+      for(var j=0;j<32;j++) t[j] ^= u[j];
+    }
+    var take = Math.min(32, dkLen-pos);
+    out.set(t.subarray(0,take), pos);
+    pos += take; block++;
+  }
+  return out;
+}
+
+function keystream(key, len){
+  var out = new Uint8Array(Math.ceil(len/32)*32), c = 0;
+  while(c*32 < len){
+    out.set(sha256(cat(key, new Uint8Array([(c>>>24)&255,(c>>>16)&255,(c>>>8)&255,c&255]))), c*32);
+    c++;
+  }
+  return out.subarray(0,len);
+}
+
+function hex2bytes(h){
+  var a = new Uint8Array(h.length/2);
+  for(var i=0;i<a.length;i++) a[i] = parseInt(h.substr(i*2,2),16);
+  return a;
+}
+function bytes2hex(b){
+  var s = "";
+  for(var i=0;i<b.length;i++) s += (b[i]<16?"0":"") + b[i].toString(16);
+  return s;
+}
+function utf8(str){
+  if(window.TextEncoder) return new TextEncoder().encode(str);
+  var bin = unescape(encodeURIComponent(str)), a = new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) a[i] = bin.charCodeAt(i);
+  return a;
+}
+function fromUtf8(bytes){
+  if(window.TextDecoder) return new TextDecoder("utf-8").decode(bytes);
+  var s = "";
+  for(var i=0;i<bytes.length;i++) s += String.fromCharCode(bytes[i]);
+  return decodeURIComponent(escape(s));
+}
+
+/* ============================ 成績計算與顯示 ========================= */
+function fmt(n){
+  if(!isFinite(n)) return "—";
+  var r = Math.round(n*100)/100;
+  return (Math.abs(r - Math.round(r)) < 1e-9) ? String(Math.round(r)) : r.toFixed(2).replace(/0$/,"");
+}
+function esc(s){
+  return String(s == null ? "" : s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+/* 金鑰推導：優先用瀏覽器內建 WebCrypto（快），不支援時改用上方純 JS 實作 */
+function deriveKey(idBytes, salt, iters){
+  var c = window.crypto || window.msCrypto;
+  if(c && c.subtle && c.subtle.importKey){
+    try{
+      return c.subtle.importKey("raw", idBytes, {name:"PBKDF2"}, false, ["deriveBits"])
+        .then(function(km){
+          return c.subtle.deriveBits(
+            {name:"PBKDF2", salt:salt, iterations:iters, hash:"SHA-256"}, km, 512);
+        })
+        .then(function(bits){ return new Uint8Array(bits); })
+        .catch(function(){ return pbkdf2(idBytes, salt, iters, 64); });
+    }catch(e){ /* 落回純 JS */ }
+  }
+  return Promise.resolve(pbkdf2(idBytes, salt, iters, 64));
+}
+
+function lookup(idRaw){
+  var id = String(idRaw).replace(/\s+/g,"");
+  return deriveKey(utf8(id), hex2bytes(DATA.salt), DATA.iters).then(function(dk){
+    var key = dk.subarray(0,32), token = bytes2hex(dk.subarray(32,64));
+    var rec = DATA.records[token];
+    if(!rec) return null;
+    var ct = hex2bytes(rec.c);
+    if(bytes2hex(hmac(key, ct).subarray(0,16)) !== rec.m) return null;
+    var ks = keystream(key, ct.length), pt = new Uint8Array(ct.length);
+    for(var i=0;i<ct.length;i++) pt[i] = ct[i] ^ ks[i];
+    try { return JSON.parse(fromUtf8(pt)); } catch(e){ return null; }
+  });
+}
+
+function render(rec){
+  var items = DATA.items, rows = "", total = 0, gradedW = 0, maxW = 0;
+
+  for(var i=0;i<items.length;i++){
+    var it = items[i], s = rec.scores[i], has = (s !== null && s !== undefined);
+    var pts = has ? (s * it.weight / 100) : 0;
+    maxW += it.weight;
+    total += pts;
+    if(has) gradedW += it.weight;
+    var pct = it.weight > 0 ? Math.max(0, Math.min(100, (pts/it.weight)*100)) : 0;
+
+    rows += '<tr class="' + (has ? "" : "pending") + '">'
+         +  '<td><span class="item-name">' + esc(it.label) + '</span>'
+         +      '<span class="bar"><i style="width:' + (has ? pct.toFixed(1) : 0) + '%"></i></span></td>'
+         +  '<td><span class="num' + (has ? "" : " dim") + '">' + (has ? fmt(s) : "—") + '</span></td>'
+         +  '<td><span class="wt">' + fmt(it.weight) + '%</span></td>'
+         +  '<td><span class="num' + (has ? "" : " dim") + '">' + fmt(pts) + '</span></td>'
+         +  '<td><span class="state ' + (has ? "done" : "wait") + '">'
+         +      (has ? "已評分" : "未評分") + '</span></td>'
+         +  '</tr>';
+  }
+
+  var deduct = (rec.deduction === null || rec.deduction === undefined) ? 0 : Math.abs(rec.deduction);
+  if(deduct > 0){
+    rows += '<tr class="deduct"><td><span class="item-name">點名扣分</span></td>'
+         +  '<td><span class="num">—</span></td><td><span class="wt">—</span></td>'
+         +  '<td><span class="num">-' + fmt(deduct) + '</span></td>'
+         +  '<td><span class="state done" style="background:#fbd6e0;color:#8e0a2e">已扣分</span></td></tr>';
+  }
+
+  var finalTotal = total - deduct;
+  var pctRate = gradedW > 0 ? (total / gradedW * 100) : null;
+
+  document.getElementById("rRows").innerHTML = rows;
+  document.getElementById("rFoot").innerHTML =
+      '<tr><td>目前總分 Total</td><td colspan="2"></td>'
+    + '<td><span class="num">' + fmt(finalTotal) + '</span></td>'
+    + '<td style="font-family:var(--cond);letter-spacing:.1em;color:var(--muted);font-size:12px">/ '
+    + fmt(maxW) + '</td></tr>';
+
+  document.getElementById("rName").textContent = rec.name || "—";
+  document.getElementById("rGroup").textContent = (rec.group === null || rec.group === undefined) ? "–" : rec.group;
+  document.getElementById("rMeta").innerHTML =
+      (rec.cls ? '<span class="chip">' + esc(rec.cls) + '</span>' : "")
+    + '<span class="chip">學號 ' + esc(rec.id) + '</span>'
+    + '<span class="chip">已評分 ' + fmt(gradedW) + '% / ' + fmt(maxW) + '%</span>';
+
+  document.getElementById("rTotal").innerHTML = fmt(finalTotal) + '<small>/' + fmt(maxW) + '</small>';
+  document.getElementById("rGradedWeight").innerHTML = fmt(gradedW) + '<small>%</small>';
+  document.getElementById("rPct").innerHTML =
+      pctRate === null ? "—" : fmt(pctRate) + '<small>%</small>';
+  document.getElementById("rDeduct").textContent = deduct > 0 ? ("-" + fmt(deduct)) : "0";
+}
+
+/* ============================ 介面事件 =============================== */
+(function(){
+  document.getElementById("brandTitle").textContent = COURSE.title;
+  document.title = COURSE.title;
+  document.getElementById("brandKicker").textContent = COURSE.kicker;
+  document.getElementById("brandTag").textContent = COURSE.tag;
+  document.getElementById("foot").textContent = COURSE.footer;
+
+  var form = document.getElementById("form"),
+      input = document.getElementById("sid"),
+      go = document.getElementById("go"),
+      msg = document.getElementById("msg"),
+      panel = document.getElementById("resultPanel"),
+      search = document.getElementById("searchPanel");
+
+  function say(text, waiting){
+    msg.className = "msg show" + (waiting ? " wait" : "");
+    msg.textContent = text;
+  }
+  function clearMsg(){ msg.className = "msg"; msg.textContent = ""; }
+
+  form.addEventListener("submit", function(ev){
+    ev.preventDefault();
+    var id = input.value.replace(/\s+/g,"");
+    if(!id){ say("請輸入學號。"); input.focus(); return; }
+
+    panel.classList.remove("show");
+    say("正在解密並計算成績，請稍候…", true);
+    go.disabled = true;
+
+    setTimeout(function(){
+      lookup(id).then(function(rec){
+        go.disabled = false;
+        if(!rec){
+          say("查無此學號的成績資料（" + id + "）。請確認學號是否正確，或與授課教師聯絡。");
+          return;
+        }
+        clearMsg();
+        render(rec);
+        panel.classList.add("show");
+        panel.scrollIntoView({behavior:"smooth", block:"start"});
+      }).catch(function(e){
+        go.disabled = false;
+        say("查詢時發生錯誤：" + ((e && e.message) ? e.message : e));
+      });
+    }, 40);
+  });
+
+  document.getElementById("again").addEventListener("click", function(){
+    panel.classList.remove("show");
+    input.value = "";
+    clearMsg();
+    search.scrollIntoView({behavior:"smooth", block:"start"});
+    input.focus();
+  });
+
+  document.getElementById("printBtn").addEventListener("click", function(){ window.print(); });
+
+  input.addEventListener("input", clearMsg);
+})();
+</script>
+</body>
+</html>

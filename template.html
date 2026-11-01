@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>成績查詢系統</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* ===== 課程名稱請在檔案最下方的 COURSE 設定區修改 ===================== */
+:root{
+  --navy:#041e42;
+  --navy-2:#0a2b5c;
+  --red:#bf0d3e;
+  --red-dark:#8e0a2e;
+  --ink:#10151f;
+  --muted:#5c6779;
+  --line:#d8dde6;
+  --bg:#eef1f5;
+  --card:#ffffff;
+  --good:#11734b;
+  --cond:"Oswald","Archivo Narrow","Arial Narrow",sans-serif;
+  --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--body);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+.wrap{width:100%;max-width:960px;margin:0 auto;padding:0 16px}
+
+/* ---------- masthead ---------- */
+.masthead{
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.06) 0 1px,transparent 1px 9px),
+    linear-gradient(180deg,var(--navy-2),var(--navy));
+  color:#fff;
+  border-bottom:5px solid var(--red);
+}
+.masthead .wrap{
+  display:flex;align-items:center;gap:14px;
+  min-height:84px;padding-top:12px;padding-bottom:12px;
+}
+.logo{
+  width:46px;height:46px;flex:0 0 46px;
+  display:grid;place-items:center;
+  background:var(--red);
+  clip-path:polygon(50% 0,100% 28%,100% 100%,0 100%,0 28%);
+  box-shadow:0 2px 0 rgba(0,0,0,.35);
+}
+.logo svg{width:26px;height:26px;display:block}
+.brandtext{min-width:0}
+.kicker{
+  font-family:var(--cond);font-weight:600;font-size:11px;
+  letter-spacing:.22em;text-transform:uppercase;color:#9fc0e8;
+  margin-bottom:2px;
+}
+.masthead h1{
+  margin:0;font-size:clamp(19px,4.6vw,26px);font-weight:900;
+  letter-spacing:.02em;line-height:1.15;
+}
+.masthead .tag{
+  margin-left:auto;flex:0 0 auto;
+  font-family:var(--cond);font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:#9fc0e8;text-align:right;line-height:1.5;
+}
+@media (max-width:560px){ .masthead .tag{display:none} }
+
+/* ---------- panels ---------- */
+main{padding:26px 0 60px}
+.panel{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-top:4px solid var(--navy);
+  border-radius:4px;
+  box-shadow:0 10px 24px -18px rgba(4,30,66,.55);
+}
+.panel+.panel{margin-top:18px}
+.panel-head{
+  display:flex;align-items:center;gap:10px;
+  padding:13px 18px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,#fbfcfe,#f2f5f9);
+}
+.panel-head h2{
+  margin:0;font-family:var(--cond);font-weight:600;
+  font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--navy);
+}
+.panel-head .cn{font-size:13px;font-weight:700;color:var(--ink)}
+.panel-body{padding:18px}
+
+/* ---------- search ---------- */
+#searchPanel .panel-body{padding:26px 18px 24px}
+.search-lead{
+  font-family:var(--cond);font-size:12px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--muted);margin:0 0 6px;
+}
+.search-title{margin:0 0 18px;font-size:20px;font-weight:900;letter-spacing:.01em}
+.field{display:flex;gap:10px;flex-wrap:wrap}
+.field label{
+  position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);
+}
+#sid{
+  flex:1 1 220px;min-width:0;
+  font-family:var(--cond);font-size:24px;font-weight:600;letter-spacing:.14em;
+  padding:13px 15px;border:2px solid var(--line);border-radius:3px;
+  background:#fff;color:var(--ink);
+}
+#sid::placeholder{color:#b3bcca;letter-spacing:.14em}
+#sid:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(4,30,66,.12)}
+.btn{
+  font-family:var(--cond);font-weight:600;font-size:15px;
+  letter-spacing:.14em;text-transform:uppercase;
+  padding:0 24px;min-height:52px;border:0;border-radius:3px;cursor:pointer;
+  background:var(--red);color:#fff;transition:background .15s;
+}
+.btn:hover{background:var(--red-dark)}
+.btn:disabled{opacity:.6;cursor:progress}
+.btn.ghost{background:transparent;color:var(--navy);border:2px solid var(--navy);min-height:44px;font-size:13px}
+.btn.ghost:hover{background:var(--navy);color:#fff}
+.hint{margin:14px 0 0;font-size:12.5px;line-height:1.75;color:var(--muted)}
+.msg{
+  display:none;margin-top:14px;padding:12px 14px;border-radius:3px;
+  font-size:13.5px;line-height:1.7;
+  background:#fdeaef;border-left:4px solid var(--red);color:#7c0b2b;
+}
+.msg.show{display:block}
+.msg.wait{background:#eaf0fa;border-left-color:var(--navy);color:var(--navy)}
+
+/* ---------- name plate ---------- */
+.nameplate{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:18px;color:#fff;
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.05) 0 1px,transparent 1px 10px),
+    linear-gradient(180deg,var(--navy-2),var(--navy));
+}
+.jersey{
+  flex:0 0 auto;width:64px;height:64px;border-radius:50%;
+  display:grid;place-items:center;background:var(--red);
+  border:3px solid rgba(255,255,255,.85);
+}
+.jersey b{font-family:var(--cond);font-size:27px;font-weight:700;line-height:1}
+.jersey span{
+  display:block;font-family:var(--cond);font-size:8.5px;
+  letter-spacing:.18em;opacity:.85;margin-top:1px;text-align:center;
+}
+.who{min-width:0;flex:1 1 200px}
+.who .nm{
+  margin:0;font-size:clamp(23px,5.4vw,31px);font-weight:900;
+  line-height:1.15;letter-spacing:.01em;
+}
+.who .meta{
+  margin-top:7px;display:flex;flex-wrap:wrap;gap:7px;
+}
+.chip{
+  font-family:var(--cond);font-size:11.5px;letter-spacing:.12em;
+  text-transform:uppercase;padding:4px 9px;border-radius:2px;
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+}
+
+/* ---------- scoreboard ---------- */
+.scoreboard{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  background:#0d1a2f;color:#fff;
+}
+.sb{padding:14px 12px;text-align:center;border-left:1px solid rgba(255,255,255,.1)}
+.sb:first-child{border-left:0}
+.sb.primary{background:var(--red)}
+.sb .lbl{
+  font-family:var(--cond);font-size:9.5px;letter-spacing:.16em;
+  text-transform:uppercase;opacity:.82;display:block;margin-bottom:5px;
+}
+.sb .val{font-family:var(--cond);font-size:clamp(22px,5.6vw,30px);font-weight:700;line-height:1}
+.sb .val small{font-size:13px;font-weight:500;opacity:.8;margin-left:1px}
+@media (max-width:620px){
+  .scoreboard{grid-template-columns:repeat(2,1fr)}
+  .sb:nth-child(3){border-left:0}
+  .sb:nth-child(n+3){border-top:1px solid rgba(255,255,255,.1)}
+}
+
+/* ---------- stat table ---------- */
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:520px}
+thead th{
+  background:var(--navy);color:#fff;
+  font-family:var(--cond);font-weight:500;font-size:11px;
+  letter-spacing:.14em;text-transform:uppercase;
+  padding:9px 12px;text-align:right;white-space:nowrap;
+}
+thead th:first-child{text-align:left}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:right;vertical-align:middle}
+tbody td:first-child{text-align:left}
+tbody tr:nth-child(even){background:#f8fafc}
+tbody tr.pending{color:var(--muted)}
+.item-name{font-weight:700;display:block}
+.bar{display:block;margin-top:6px;height:5px;width:100%;max-width:190px;background:#e4e8ef;border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--navy);border-radius:3px}
+.num{font-family:var(--cond);font-size:17px;font-weight:600;letter-spacing:.02em}
+.num.dim{color:#aab3c0;font-weight:500}
+.wt{font-family:var(--cond);font-size:15px;color:var(--muted)}
+.state{
+  font-family:var(--cond);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  padding:3px 7px;border-radius:2px;white-space:nowrap;
+}
+.state.done{background:#e3f3ec;color:var(--good)}
+.state.wait{background:#eef1f5;color:#7b8798}
+tbody tr.deduct{background:#fdeaef}
+tbody tr.deduct .num{color:var(--red)}
+tfoot td{
+  padding:13px 12px;text-align:right;background:#f2f5f9;
+  border-top:2px solid var(--navy);font-weight:700;
+}
+tfoot td:first-child{text-align:left;font-family:var(--cond);letter-spacing:.14em;text-transform:uppercase;color:var(--navy)}
+tfoot .num{font-size:21px;color:var(--navy)}
+
+/* ---------- notes / footer ---------- */
+.notes{padding:16px 18px;background:#f8fafc;border-top:1px solid var(--line)}
+.notes h3{
+  margin:0 0 8px;font-family:var(--cond);font-size:11.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--navy);
+}
+.notes ul{margin:0;padding-left:1.15em;font-size:12.5px;line-height:1.85;color:var(--muted)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;padding:16px 18px;border-top:1px solid var(--line)}
+footer{
+  border-top:1px solid var(--line);background:#fff;
+  padding:16px 0;font-size:12px;color:var(--muted);text-align:center;
+}
+#resultPanel{display:none}
+#resultPanel.show{display:block}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+@media print{
+  body{background:#fff}
+  .masthead,.actions,#searchPanel,footer{display:none!important}
+  .panel{border:0;box-shadow:none}
+  .nameplate,.scoreboard{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round">
+        <path d="M4 7h16M4 12h16M4 17h10"/>
+      </svg>
+    </div>
+    <div class="brandtext">
+      <div class="kicker" id="brandKicker">Student Grade Lookup</div>
+      <h1 id="brandTitle">成績查詢系統</h1>
+    </div>
+    <div class="tag" id="brandTag"></div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="panel" id="searchPanel">
+    <div class="panel-head">
+      <h2>Lookup</h2><span class="cn">學號查詢</span>
+    </div>
+    <div class="panel-body">
+      <p class="search-lead">Enter your student ID</p>
+      <h2 class="search-title">請輸入您的學號查詢個人成績</h2>
+      <form class="field" id="form" autocomplete="off">
+        <label for="sid">學號</label>
+        <input id="sid" name="sid" type="text" inputmode="numeric" autocomplete="off"
+               placeholder="114000000" maxlength="20" spellcheck="false">
+        <button class="btn" id="go" type="submit">查詢成績</button>
+      </form>
+      <div class="msg" id="msg" role="status" aria-live="polite"></div>
+      <p class="hint">
+        為保護個人隱私，本頁僅能查詢輸入學號本人的成績；每筆成績資料皆以學號加密保存，
+        輸入正確學號後才會在您的瀏覽器中解密顯示。資料不會上傳至任何伺服器。
+      </p>
+    </div>
+  </section>
+
+  <section class="panel" id="resultPanel" aria-live="polite">
+    <div class="nameplate">
+      <div class="jersey"><div><b id="rGroup">—</b><span>GROUP</span></div></div>
+      <div class="who">
+        <h2 class="nm" id="rName">—</h2>
+        <div class="meta" id="rMeta"></div>
+      </div>
+    </div>
+
+    <div class="scoreboard">
+      <div class="sb primary">
+        <span class="lbl">目前總分 Total</span>
+        <span class="val" id="rTotal">0<small>/100</small></span>
+      </div>
+      <div class="sb">
+        <span class="lbl">已評分權重 Graded</span>
+        <span class="val" id="rGradedWeight">0<small>%</small></span>
+      </div>
+      <div class="sb">
+        <span class="lbl">得分率 Pct</span>
+        <span class="val" id="rPct">—</span>
+      </div>
+      <div class="sb">
+        <span class="lbl">點名扣分 Deduct</span>
+        <span class="val" id="rDeduct">0</span>
+      </div>
+    </div>
+
+    <div class="panel-head" style="border-top:1px solid var(--line)">
+      <h2>Box Score</h2><span class="cn">各項成績明細</span>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">項目 Item</th>
+            <th scope="col">分數 Score</th>
+            <th scope="col">權重 Weight</th>
+            <th scope="col">加權得分 Points</th>
+            <th scope="col">狀態 Status</th>
+          </tr>
+        </thead>
+        <tbody id="rRows"></tbody>
+        <tfoot id="rFoot"></tfoot>
+      </table>
+    </div>
+
+    <div class="notes">
+      <h3>計算方式說明</h3>
+      <ul>
+        <li>各項成績以「分數 × 權重%」換算為加權得分後加總，即為目前總分。</li>
+        <li>尚未評分（無資料）的項目一律以 <strong>0 分</strong>計入總分，待該項成績登錄後總分會隨之提高。</li>
+        <li>「得分率」為目前已評分項目的得分比例（已得加權分 ÷ 已評分權重），僅供參考，不是學期總分。</li>
+        <li>若有點名扣分，會從加權總分中直接扣除。</li>
+        <li>本頁為成績進度查詢，實際學期成績以學校教務系統公告為準。</li>
+      </ul>
+    </div>
+
+    <div class="actions">
+      <button class="btn ghost" id="again" type="button">查詢其他學號</button>
+      <button class="btn ghost" id="printBtn" type="button">列印 / 存成 PDF</button>
+    </div>
+  </section>
+
+</main>
+
+<footer class="wrap" id="foot"></footer>
+
+<script>
+/* =====================================================================
+   課程 / 頁面名稱設定 — 需要改標題時只要改這裡
+   ===================================================================== */
+var COURSE = {
+  title:  "成績查詢系統",          // 大標題
+  kicker: "Student Grade Lookup",  // 標題上方小字
+  tag:    "",                      // 右上角文字，例如 "114-1 學期"
+  footer: "成績資料來源：Grade review.xlsx"
+};
+
+/* =====================================================================
+   成績資料（由 build.py 產生；每筆記錄以該生學號加密）
+   ===================================================================== */
+var DATA = __GRADE_DATA__;
+
+/* ============================ SHA-256 / HMAC / PBKDF2 ================ */
+var SHA_K = new Uint32Array([
+  0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+  0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+  0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+  0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+  0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+  0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+  0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+  0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+]);
+
+function rotr(x,n){ return (x>>>n)|(x<<(32-n)); }
+
+function sha256(bytes){
+  var len = bytes.length, bitHi = Math.floor(len/536870912), bitLo = (len*8)>>>0;
+  var total = (len + 9 + 63) & ~63;
+  var buf = new Uint8Array(total);
+  buf.set(bytes); buf[len] = 0x80;
+  var dv = new DataView(buf.buffer);
+  dv.setUint32(total-8, bitHi, false);
+  dv.setUint32(total-4, bitLo, false);
+
+  var H = new Uint32Array([0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,
+                           0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19]);
+  var w = new Uint32Array(64), i, off;
+  for(off=0; off<total; off+=64){
+    for(i=0;i<16;i++) w[i] = dv.getUint32(off+i*4,false);
+    for(i=16;i<64;i++){
+      var x = w[i-15], y = w[i-2];
+      var s0 = rotr(x,7)^rotr(x,18)^(x>>>3);
+      var s1 = rotr(y,17)^rotr(y,19)^(y>>>10);
+      w[i] = (w[i-16] + s0 + w[i-7] + s1) >>> 0;
+    }
+    var a=H[0],b=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+    for(i=0;i<64;i++){
+      var S1 = rotr(e,6)^rotr(e,11)^rotr(e,25);
+      var ch = (e&f)^((~e)&g);
+      var t1 = (h + S1 + ch + SHA_K[i] + w[i]) >>> 0;
+      var S0 = rotr(a,2)^rotr(a,13)^rotr(a,22);
+      var mj = (a&b)^(a&c)^(b&c);
+      var t2 = (S0 + mj) >>> 0;
+      h=g; g=f; f=e; e=(d+t1)>>>0; d=c; c=b; b=a; a=(t1+t2)>>>0;
+    }
+    H[0]=(H[0]+a)>>>0; H[1]=(H[1]+b)>>>0; H[2]=(H[2]+c)>>>0; H[3]=(H[3]+d)>>>0;
+    H[4]=(H[4]+e)>>>0; H[5]=(H[5]+f)>>>0; H[6]=(H[6]+g)>>>0; H[7]=(H[7]+h)>>>0;
+  }
+  var out = new Uint8Array(32), odv = new DataView(out.buffer);
+  for(i=0;i<8;i++) odv.setUint32(i*4, H[i], false);
+  return out;
+}
+
+function cat(a,b){
+  var r = new Uint8Array(a.length+b.length);
+  r.set(a,0); r.set(b,a.length); return r;
+}
+
+function hmac(key, msg){
+  if(key.length > 64) key = sha256(key);
+  var k = new Uint8Array(64); k.set(key);
+  var ip = new Uint8Array(64), op = new Uint8Array(64);
+  for(var i=0;i<64;i++){ ip[i]=k[i]^0x36; op[i]=k[i]^0x5c; }
+  return sha256(cat(op, sha256(cat(ip, msg))));
+}
+
+function pbkdf2(pw, salt, iters, dkLen){
+  var out = new Uint8Array(dkLen), pos = 0, block = 1;
+  while(pos < dkLen){
+    var idx = new Uint8Array([(block>>>24)&255,(block>>>16)&255,(block>>>8)&255,block&255]);
+    var u = hmac(pw, cat(salt, idx));
+    var t = u.slice(0);
+    for(var i=1;i<iters;i++){
+      u = hmac(pw, u);
+      for(var j=0;j<32;j++) t[j] ^= u[j];
+    }
+    var take = Math.min(32, dkLen-pos);
+    out.set(t.subarray(0,take), pos);
+    pos += take; block++;
+  }
+  return out;
+}
+
+function keystream(key, len){
+  var out = new Uint8Array(Math.ceil(len/32)*32), c = 0;
+  while(c*32 < len){
+    out.set(sha256(cat(key, new Uint8Array([(c>>>24)&255,(c>>>16)&255,(c>>>8)&255,c&255]))), c*32);
+    c++;
+  }
+  return out.subarray(0,len);
+}
+
+function hex2bytes(h){
+  var a = new Uint8Array(h.length/2);
+  for(var i=0;i<a.length;i++) a[i] = parseInt(h.substr(i*2,2),16);
+  return a;
+}
+function bytes2hex(b){
+  var s = "";
+  for(var i=0;i<b.length;i++) s += (b[i]<16?"0":"") + b[i].toString(16);
+  return s;
+}
+function utf8(str){
+  if(window.TextEncoder) return new TextEncoder().encode(str);
+  var bin = unescape(encodeURIComponent(str)), a = new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) a[i] = bin.charCodeAt(i);
+  return a;
+}
+function fromUtf8(bytes){
+  if(window.TextDecoder) return new TextDecoder("utf-8").decode(bytes);
+  var s = "";
+  for(var i=0;i<bytes.length;i++) s += String.fromCharCode(bytes[i]);
+  return decodeURIComponent(escape(s));
+}
+
+/* ============================ 成績計算與顯示 ========================= */
+function fmt(n){
+  if(!isFinite(n)) return "—";
+  var r = Math.round(n*100)/100;
+  return (Math.abs(r - Math.round(r)) < 1e-9) ? String(Math.round(r)) : r.toFixed(2).replace(/0$/,"");
+}
+function esc(s){
+  return String(s == null ? "" : s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+/* 金鑰推導：優先用瀏覽器內建 WebCrypto（快），不支援時改用上方純 JS 實作 */
+function deriveKey(idBytes, salt, iters){
+  var c = window.crypto || window.msCrypto;
+  if(c && c.subtle && c.subtle.importKey){
+    try{
+      return c.subtle.importKey("raw", idBytes, {name:"PBKDF2"}, false, ["deriveBits"])
+        .then(function(km){
+          return c.subtle.deriveBits(
+            {name:"PBKDF2", salt:salt, iterations:iters, hash:"SHA-256"}, km, 512);
+        })
+        .then(function(bits){ return new Uint8Array(bits); })
+        .catch(function(){ return pbkdf2(idBytes, salt, iters, 64); });
+    }catch(e){ /* 落回純 JS */ }
+  }
+  return Promise.resolve(pbkdf2(idBytes, salt, iters, 64));
+}
+
+function lookup(idRaw){
+  var id = String(idRaw).replace(/\s+/g,"");
+  return deriveKey(utf8(id), hex2bytes(DATA.salt), DATA.iters).then(function(dk){
+    var key = dk.subarray(0,32), token = bytes2hex(dk.subarray(32,64));
+    var rec = DATA.records[token];
+    if(!rec) return null;
+    var ct = hex2bytes(rec.c);
+    if(bytes2hex(hmac(key, ct).subarray(0,16)) !== rec.m) return null;
+    var ks = keystream(key, ct.length), pt = new Uint8Array(ct.length);
+    for(var i=0;i<ct.length;i++) pt[i] = ct[i] ^ ks[i];
+    try { return JSON.parse(fromUtf8(pt)); } catch(e){ return null; }
+  });
+}
+
+function render(rec){
+  var items = DATA.items, rows = "", total = 0, gradedW = 0, maxW = 0;
+
+  for(var i=0;i<items.length;i++){
+    var it = items[i], s = rec.scores[i], has = (s !== null && s !== undefined);
+    var pts = has ? (s * it.weight / 100) : 0;
+    maxW += it.weight;
+    total += pts;
+    if(has) gradedW += it.weight;
+    var pct = it.weight > 0 ? Math.max(0, Math.min(100, (pts/it.weight)*100)) : 0;
+
+    rows += '<tr class="' + (has ? "" : "pending") + '">'
+         +  '<td><span class="item-name">' + esc(it.label) + '</span>'
+         +      '<span class="bar"><i style="width:' + (has ? pct.toFixed(1) : 0) + '%"></i></span></td>'
+         +  '<td><span class="num' + (has ? "" : " dim") + '">' + (has ? fmt(s) : "—") + '</span></td>'
+         +  '<td><span class="wt">' + fmt(it.weight) + '%</span></td>'
+         +  '<td><span class="num' + (has ? "" : " dim") + '">' + fmt(pts) + '</span></td>'
+         +  '<td><span class="state ' + (has ? "done" : "wait") + '">'
+         +      (has ? "已評分" : "未評分") + '</span></td>'
+         +  '</tr>';
+  }
+
+  var deduct = (rec.deduction === null || rec.deduction === undefined) ? 0 : Math.abs(rec.deduction);
+  if(deduct > 0){
+    rows += '<tr class="deduct"><td><span class="item-name">點名扣分</span></td>'
+         +  '<td><span class="num">—</span></td><td><span class="wt">—</span></td>'
+         +  '<td><span class="num">-' + fmt(deduct) + '</span></td>'
+         +  '<td><span class="state done" style="background:#fbd6e0;color:#8e0a2e">已扣分</span></td></tr>';
+  }
+
+  var finalTotal = total - deduct;
+  var pctRate = gradedW > 0 ? (total / gradedW * 100) : null;
+
+  document.getElementById("rRows").innerHTML = rows;
+  document.getElementById("rFoot").innerHTML =
+      '<tr><td>目前總分 Total</td><td colspan="2"></td>'
+    + '<td><span class="num">' + fmt(finalTotal) + '</span></td>'
+    + '<td style="font-family:var(--cond);letter-spacing:.1em;color:var(--muted);font-size:12px">/ '
+    + fmt(maxW) + '</td></tr>';
+
+  document.getElementById("rName").textContent = rec.name || "—";
+  document.getElementById("rGroup").textContent = (rec.group === null || rec.group === undefined) ? "–" : rec.group;
+  document.getElementById("rMeta").innerHTML =
+      (rec.cls ? '<span class="chip">' + esc(rec.cls) + '</span>' : "")
+    + '<span class="chip">學號 ' + esc(rec.id) + '</span>'
+    + '<span class="chip">已評分 ' + fmt(gradedW) + '% / ' + fmt(maxW) + '%</span>';
+
+  document.getElementById("rTotal").innerHTML = fmt(finalTotal) + '<small>/' + fmt(maxW) + '</small>';
+  document.getElementById("rGradedWeight").innerHTML = fmt(gradedW) + '<small>%</small>';
+  document.getElementById("rPct").innerHTML =
+      pctRate === null ? "—" : fmt(pctRate) + '<small>%</small>';
+  document.getElementById("rDeduct").textContent = deduct > 0 ? ("-" + fmt(deduct)) : "0";
+}
+
+/* ============================ 介面事件 =============================== */
+(function(){
+  document.getElementById("brandTitle").textContent = COURSE.title;
+  document.title = COURSE.title;
+  document.getElementById("brandKicker").textContent = COURSE.kicker;
+  document.getElementById("brandTag").textContent = COURSE.tag;
+  document.getElementById("foot").textContent = COURSE.footer;
+
+  var form = document.getElementById("form"),
+      input = document.getElementById("sid"),
+      go = document.getElementById("go"),
+      msg = document.getElementById("msg"),
+      panel = document.getElementById("resultPanel"),
+      search = document.getElementById("searchPanel");
+
+  function say(text, waiting){
+    msg.className = "msg show" + (waiting ? " wait" : "");
+    msg.textContent = text;
+  }
+  function clearMsg(){ msg.className = "msg"; msg.textContent = ""; }
+
+  form.addEventListener("submit", function(ev){
+    ev.preventDefault();
+    var id = input.value.replace(/\s+/g,"");
+    if(!id){ say("請輸入學號。"); input.focus(); return; }
+
+    panel.classList.remove("show");
+    say("正在解密並計算成績，請稍候…", true);
+    go.disabled = true;
+
+    setTimeout(function(){
+      lookup(id).then(function(rec){
+        go.disabled = false;
+        if(!rec){
+          say("查無此學號的成績資料（" + id + "）。請確認學號是否正確，或與授課教師聯絡。");
+          return;
+        }
+        clearMsg();
+        render(rec);
+        panel.classList.add("show");
+        panel.scrollIntoView({behavior:"smooth", block:"start"});
+      }).catch(function(e){
+        go.disabled = false;
+        say("查詢時發生錯誤：" + ((e && e.message) ? e.message : e));
+      });
+    }, 40);
+  });
+
+  document.getElementById("again").addEventListener("click", function(){
+    panel.classList.remove("show");
+    input.value = "";
+    clearMsg();
+    search.scrollIntoView({behavior:"smooth", block:"start"});
+    input.focus();
+  });
+
+  document.getElementById("printBtn").addEventListener("click", function(){ window.print(); });
+
+  input.addEventListener("input", clearMsg);
+})();
+</script>
+</body>
+</html>
