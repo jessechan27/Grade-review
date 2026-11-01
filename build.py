@@ -2,14 +2,16 @@
 """
 Build index.html (MLB-style grade lookup site) from "Grade review.xlsx".
 
-Two access paths, both enforced by encryption rather than by the UI:
+Access is enforced by encryption rather than by the UI: each record's key is
+PBKDF2(學號 + "|" + 查詢碼), so a student can only decrypt their own record,
+and only with their own code. The published page contains nothing else --
+there is deliberately no all-class blob on the public site.
 
-  * Student — key = PBKDF2(學號 + "|" + 查詢碼). Each student can only decrypt
-    their own record, and only if they know their own code.
-  * Admin   — key = PBKDF2(主密碼). Decrypts one blob holding the whole roster.
+The teacher's own view of the whole class is produced locally instead, as
+成績總表.csv next to this script.
 
-Codes and the admin password are kept in secrets.json so they stay stable
-across rebuilds. secrets.json is gitignored and must never be published.
+Codes are kept in secrets.json so they stay stable across rebuilds.
+secrets.json is gitignored and must never be published.
 
 Usage:  python build.py
 """
@@ -30,15 +32,14 @@ TEMPLATE = os.path.join(HERE, "template.html")
 OUTPUT = os.path.join(HERE, "index.html")
 SECRETS = os.path.join(HERE, "secrets.json")
 HANDOUT = os.path.join(HERE, "查詢碼名單.csv")
+SUMMARY = os.path.join(HERE, "成績總表.csv")
 
 STUDENT_ITERS = 60000      # mirrored in template.html via DATA.iters
-ADMIN_ITERS = 300000       # admin logs in rarely, so this can be slower
 DK_LEN = 64                # 32-byte cipher key + 32-byte lookup token
 
 # No 0/O/1/I/L — unambiguous when read off a screen or printed
 ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"
 CODE_LEN = 8               # 31^8 ~ 8.5e11 combinations
-ADMIN_LEN = 16
 
 COL_CLASS, COL_ID, COL_NAME, COL_GROUP = 0, 1, 2, 3
 FIRST_ITEM_COL = 4
@@ -79,6 +80,18 @@ def make_code(length=CODE_LEN):
 
 def group4(text):
     return "-".join(text[i:i + 4] for i in range(0, len(text), 4))
+
+
+def total_of(stu, items):
+    """(目前總分, 已評分權重) — 未評分項目以 0 分計入，點名扣分直接扣除。"""
+    total = graded_w = 0.0
+    for score, item in zip(stu["scores"], items):
+        if score is not None:
+            total += score * item["weight"] / 100.0
+            graded_w += item["weight"]
+    if stu["deduction"] is not None:
+        total -= abs(stu["deduction"])
+    return total, graded_w
 
 
 # ------------------------------------------------------------- xlsx read ----
@@ -175,12 +188,11 @@ def read_workbook():
 
 def load_secrets():
     if not os.path.exists(SECRETS):
-        return {"admin_password": group4(make_code(ADMIN_LEN)), "codes": {}}
+        return {"codes": {}}
     with open(SECRETS, "r", encoding="utf-8") as fh:
         data = json.load(fh)
     data.setdefault("codes", {})
-    if not data.get("admin_password"):
-        data["admin_password"] = group4(make_code(ADMIN_LEN))
+    data.pop("admin_password", None)   # 網站已不再有全班名冊，主密碼不再需要
     return data
 
 
@@ -211,9 +223,8 @@ def main():
         print(f"  - {it['label']}：{it['weight']:g}%")
 
     salt = secrets.token_bytes(16)
-    admin_salt = secrets.token_bytes(16)
 
-    records, roster = {}, []
+    records = {}
     for stu in students:
         code = store["codes"][stu["id"]]
         payload = {
@@ -221,24 +232,16 @@ def main():
             "cls": stu["class"], "group": stu["group"],
             "scores": stu["scores"], "deduction": stu["deduction"],
         }
-        roster.append(payload)
-
         dk = derive(stu["id"] + "|" + norm_code(code), salt, STUDENT_ITERS)
         key, token = dk[:32], dk[32:]
         blob = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         ct, mac = encrypt(key, blob)
         records[token.hex()] = {"c": ct.hex(), "m": mac.hex()}
 
-    admin_dk = derive(norm_code(store["admin_password"]), admin_salt, ADMIN_ITERS)
-    admin_blob = json.dumps(roster, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-    admin_ct, admin_mac = encrypt(admin_dk[:32], admin_blob)
-
     data = {
         "salt": salt.hex(), "iters": STUDENT_ITERS,
-        "asalt": admin_salt.hex(), "aiters": ADMIN_ITERS,
         "items": [{"label": i["label"], "weight": i["weight"]} for i in items],
         "records": records,
-        "admin": {"c": admin_ct.hex(), "m": admin_mac.hex()},
     }
 
     with open(TEMPLATE, "r", encoding="utf-8") as fh:
@@ -250,12 +253,31 @@ def main():
     with open(OUTPUT, "w", encoding="utf-8") as fh:
         fh.write(html)
 
+    def csv_cell(value):
+        return '"' + str("" if value is None else value).replace('"', '""') + '"'
+
     # Distribution list for Moodle (never published — gitignored)
     with open(HANDOUT, "w", encoding="utf-8-sig", newline="") as fh:
         fh.write("班級,學號,姓名,查詢碼\n")
         for stu in students:
-            code = group4(store["codes"][stu["id"]])
-            fh.write(f'"{stu["class"]}","{stu["id"]}","{stu["name"]}","{code}"\n')
+            fh.write(",".join(csv_cell(v) for v in (
+                stu["class"], stu["id"], stu["name"],
+                group4(store["codes"][stu["id"]]))) + "\n")
+
+    # The teacher's own full-class view, generated locally instead of published
+    header = ["班級", "學號", "姓名", "組"]
+    header += [f'{i["label"]}({i["weight"]:g}%)' for i in items]
+    header += ["點名扣分", "已評分權重%", "目前總分"]
+    with open(SUMMARY, "w", encoding="utf-8-sig", newline="") as fh:
+        fh.write(",".join(csv_cell(h) for h in header) + "\n")
+        for stu in sorted(students, key=lambda s: -total_of(s, items)[0]):
+            total, graded_w = total_of(stu, items)
+            deduct = abs(stu["deduction"]) if stu["deduction"] is not None else None
+            row = [stu["class"], stu["id"], stu["name"], stu["group"]]
+            row += ["" if v is None else f"{v:g}" for v in stu["scores"]]
+            row += ["" if not deduct else f"{deduct:g}",
+                    f"{graded_w:g}", f"{round(total, 2):g}"]
+            fh.write(",".join(csv_cell(v) for v in row) + "\n")
 
     graded = sum(1 for s in students if any(v is not None for v in s["scores"]))
     print(f"\n學生人數：{len(students)}（其中 {graded} 位已有成績資料）")
@@ -264,10 +286,10 @@ def main():
               + (" …" if len(new_codes) > 8 else ""))
     else:
         print("查詢碼：沿用 secrets.json 中既有的碼（學生手上的碼仍然有效）")
-    print(f"\n管理員主密碼：{store['admin_password']}")
     print(f"\n已輸出：{OUTPUT}")
+    print(f"全班成績總表（本機用，勿上傳）：{SUMMARY}")
     print(f"查詢碼名單（勿上傳）：{HANDOUT}")
-    print(f"密碼保管檔（勿上傳）：{SECRETS}")
+    print(f"查詢碼保管檔（勿上傳）：{SECRETS}")
 
 
 if __name__ == "__main__":

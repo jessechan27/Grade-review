@@ -105,36 +105,19 @@ main{padding:26px 0 60px}
 .field label{
   position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);
 }
-#sid,#code,#apw,#filter{
+#sid,#code{
   flex:1 1 200px;min-width:0;
   font-family:var(--cond);font-size:22px;font-weight:600;letter-spacing:.12em;
   padding:13px 15px;border:2px solid var(--line);border-radius:3px;
   background:#fff;color:var(--ink);
 }
 #code{text-transform:uppercase}
-#sid::placeholder,#code::placeholder,#apw::placeholder,#filter::placeholder{
+#sid::placeholder,#code::placeholder{
   color:#b3bcca;font-size:17px;letter-spacing:.08em;
 }
-#sid:focus,#code:focus,#apw:focus,#filter:focus{
+#sid:focus,#code:focus{
   outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(4,30,66,.12);
 }
-.adminlink{color:var(--navy);font-weight:700;text-decoration:underline;text-underline-offset:3px}
-.adminlink:hover{color:var(--red)}
-#adminPanel,#rosterPanel{display:none}
-#adminPanel.show,#rosterPanel.show{display:block}
-#adminPanel{border-top-color:var(--red)}
-.rosterCount{
-  margin-left:auto;font-family:var(--cond);font-size:12px;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--muted);
-}
-#rosterTable{min-width:860px;font-size:13px}
-#rosterTable tbody td{padding:8px 10px}
-#rosterTable thead th{padding:8px 10px;font-size:10.5px}
-#rosterTable .nm{font-weight:700;white-space:nowrap}
-#rosterTable .cls{color:var(--muted);white-space:nowrap;font-size:12px}
-#rosterTable .tot{font-family:var(--cond);font-size:16px;font-weight:700;color:var(--navy)}
-#rosterTable td.dim{color:#b3bcca}
-#rosterTable tr.hide{display:none}
 .btn{
   font-family:var(--cond);font-weight:600;font-size:15px;
   letter-spacing:.14em;text-transform:uppercase;
@@ -309,54 +292,8 @@ footer{
         因此別人即使知道您的學號也查不到。所有解密與計算都在您自己的瀏覽器完成，不會上傳到任何伺服器。
       </p>
       <p class="hint" style="margin-top:10px">
-        忘記查詢碼請與授課教師聯絡。<a href="#" id="adminLink" class="adminlink">教師管理端登入</a>
+        忘記查詢碼請與授課教師聯絡。
       </p>
-    </div>
-  </section>
-
-  <section class="panel" id="adminPanel">
-    <div class="panel-head">
-      <h2>Admin</h2><span class="cn">教師管理端</span>
-    </div>
-    <div class="panel-body">
-      <p class="search-lead">Administrator access</p>
-      <h2 class="search-title">請輸入管理員主密碼以檢視全班成績</h2>
-      <form id="adminForm" autocomplete="off">
-        <div class="field">
-          <label for="apw">管理員主密碼</label>
-          <input id="apw" name="apw" type="password" autocomplete="off"
-                 placeholder="主密碼" maxlength="64" spellcheck="false">
-          <button class="btn" id="agoBtn" type="submit">登入</button>
-        </div>
-      </form>
-      <div class="msg" id="amsg" role="status" aria-live="polite"></div>
-      <p class="hint">
-        <a href="#" id="backToStudent" class="adminlink">← 回到學生查詢</a>
-      </p>
-    </div>
-  </section>
-
-  <section class="panel" id="rosterPanel">
-    <div class="panel-head">
-      <h2>Full Roster</h2><span class="cn">全班成績總表</span>
-      <span class="rosterCount" id="rosterCount"></span>
-    </div>
-    <div class="panel-body" style="padding-bottom:12px">
-      <div class="field">
-        <label for="filter">搜尋</label>
-        <input id="filter" type="text" placeholder="搜尋學號、姓名或班級…"
-               autocomplete="off" spellcheck="false" style="font-family:var(--body);font-size:15px;letter-spacing:0">
-      </div>
-    </div>
-    <div class="tablewrap">
-      <table id="rosterTable">
-        <thead id="rosterHead"></thead>
-        <tbody id="rosterBody"></tbody>
-      </table>
-    </div>
-    <div class="actions">
-      <button class="btn ghost" id="exportCsv" type="button">匯出 CSV</button>
-      <button class="btn ghost" id="adminOut" type="button">登出管理端</button>
     </div>
   </section>
 
@@ -611,12 +548,6 @@ function lookup(idRaw, codeRaw){
   });
 }
 
-/* 管理員：金鑰 = PBKDF2(主密碼)，可解開整份名冊 */
-function adminUnlock(pwRaw){
-  return deriveKey(utf8(normCode(pwRaw)), hex2bytes(DATA.asalt), DATA.aiters)
-    .then(function(dk){ return decryptWith(dk.subarray(0,32), DATA.admin); });
-}
-
 /* 依照目前已登錄的成績計算一位學生的統計值 */
 function computeTotals(rec){
   var items = DATA.items, total = 0, gradedW = 0, maxW = 0;
@@ -699,13 +630,7 @@ function render(rec){
       go = document.getElementById("go"),
       msg = document.getElementById("msg"),
       panel = document.getElementById("resultPanel"),
-      search = document.getElementById("searchPanel"),
-      adminPanel = document.getElementById("adminPanel"),
-      rosterPanel = document.getElementById("rosterPanel"),
-      apw = document.getElementById("apw"),
-      agoBtn = document.getElementById("agoBtn"),
-      amsg = document.getElementById("amsg"),
-      filterIn = document.getElementById("filter");
+      search = document.getElementById("searchPanel");
 
   function say(box, text, waiting){
     box.className = "msg show" + (waiting ? " wait" : "");
@@ -755,140 +680,6 @@ function render(rec){
   input.addEventListener("input", function(){ clearMsg(msg); });
   codeIn.addEventListener("input", function(){ clearMsg(msg); });
 
-  /* ---------------------------- 管理端切換 -------------------------- */
-  function showAdminLogin(){
-    panel.classList.remove("show");
-    rosterPanel.classList.remove("show");
-    search.style.display = "none";
-    adminPanel.classList.add("show");
-    clearMsg(amsg);
-    apw.value = "";
-    apw.focus();
-  }
-  function showStudent(){
-    adminPanel.classList.remove("show");
-    rosterPanel.classList.remove("show");
-    search.style.display = "";
-    roster = null;
-    clearMsg(amsg);
-    apw.value = "";
-  }
-  document.getElementById("adminLink").addEventListener("click", function(ev){
-    ev.preventDefault(); showAdminLogin();
-  });
-  document.getElementById("backToStudent").addEventListener("click", function(ev){
-    ev.preventDefault(); showStudent();
-  });
-  document.getElementById("adminOut").addEventListener("click", function(){
-    showStudent();
-    window.scrollTo({top:0, behavior:"smooth"});
-  });
-
-  /* ---------------------------- 管理端登入 -------------------------- */
-  var roster = null;
-
-  document.getElementById("adminForm").addEventListener("submit", function(ev){
-    ev.preventDefault();
-    var pw = apw.value;
-    if(!normCode(pw)){ say(amsg, "請輸入管理員主密碼。"); apw.focus(); return; }
-
-    say(amsg, "正在驗證並解密全班成績，請稍候…", true);
-    agoBtn.disabled = true;
-
-    setTimeout(function(){
-      adminUnlock(pw).then(function(list){
-        agoBtn.disabled = false;
-        if(!list){ say(amsg, "主密碼不正確。"); apw.select(); return; }
-        clearMsg(amsg);
-        apw.value = "";
-        roster = list;
-        renderRoster(list);
-        adminPanel.classList.remove("show");
-        rosterPanel.classList.add("show");
-        rosterPanel.scrollIntoView({behavior:"smooth", block:"start"});
-      }).catch(function(e){
-        agoBtn.disabled = false;
-        say(amsg, "登入時發生錯誤：" + ((e && e.message) ? e.message : e));
-      });
-    }, 40);
-  });
-
-  /* ---------------------------- 全班總表 ---------------------------- */
-  function renderRoster(list){
-    var items = DATA.items, head = "", body = "";
-
-    head = '<tr><th scope="col">班級 / 姓名</th><th scope="col">學號</th><th scope="col">組</th>';
-    for(var i=0;i<items.length;i++){
-      head += '<th scope="col">' + esc(items[i].label) + '<br><span style="opacity:.7">'
-            + fmt(items[i].weight) + '%</span></th>';
-    }
-    head += '<th scope="col">扣分</th><th scope="col">已評分</th><th scope="col">總分</th></tr>';
-
-    var sorted = list.slice().sort(function(a,b){
-      return computeTotals(b).finalTotal - computeTotals(a).finalTotal;
-    });
-
-    for(var r=0;r<sorted.length;r++){
-      var rec = sorted[r], agg = computeTotals(rec);
-      var hay = (rec.id + " " + rec.name + " " + rec.cls).toLowerCase();
-      body += '<tr data-hay="' + esc(hay) + '">'
-           +  '<td><span class="nm">' + esc(rec.name) + '</span><br>'
-           +      '<span class="cls">' + esc(rec.cls) + '</span></td>'
-           +  '<td style="text-align:left"><span class="wt">' + esc(rec.id) + '</span></td>'
-           +  '<td>' + ((rec.group === null || rec.group === undefined) ? "–" : esc(rec.group)) + '</td>';
-      for(var c=0;c<items.length;c++){
-        var s = rec.scores[c], has = (s !== null && s !== undefined);
-        body += '<td class="' + (has ? "" : "dim") + '">' + (has ? fmt(s) : "—") + '</td>';
-      }
-      body += '<td>' + (agg.deduct > 0 ? '<span style="color:var(--red)">-' + fmt(agg.deduct) + '</span>' : "—") + '</td>'
-           +  '<td><span class="wt">' + fmt(agg.gradedW) + '%</span></td>'
-           +  '<td><span class="tot">' + fmt(agg.finalTotal) + '</span></td></tr>';
-    }
-
-    document.getElementById("rosterHead").innerHTML = head;
-    document.getElementById("rosterBody").innerHTML = body;
-    document.getElementById("rosterCount").textContent = list.length + " 位學生";
-    filterIn.value = "";
-  }
-
-  filterIn.addEventListener("input", function(){
-    var q = filterIn.value.trim().toLowerCase();
-    var rows = document.getElementById("rosterBody").children, shown = 0;
-    for(var i=0;i<rows.length;i++){
-      var hit = !q || rows[i].getAttribute("data-hay").indexOf(q) !== -1;
-      rows[i].className = hit ? "" : "hide";
-      if(hit) shown++;
-    }
-    document.getElementById("rosterCount").textContent =
-      q ? (shown + " / " + rows.length + " 位學生") : (rows.length + " 位學生");
-  });
-
-  document.getElementById("exportCsv").addEventListener("click", function(){
-    if(!roster) return;
-    var items = DATA.items;
-    var head = ["班級","學號","姓名","組"];
-    for(var i=0;i<items.length;i++) head.push(items[i].label + "(" + fmt(items[i].weight) + "%)");
-    head.push("點名扣分","已評分權重%","目前總分");
-
-    function q(v){ return '"' + String(v == null ? "" : v).replace(/"/g,'""') + '"'; }
-    var lines = [head.map(q).join(",")];
-    for(var r=0;r<roster.length;r++){
-      var rec = roster[r], agg = computeTotals(rec);
-      var row = [rec.cls, rec.id, rec.name, rec.group];
-      for(var c=0;c<items.length;c++){
-        var s = rec.scores[c];
-        row.push((s === null || s === undefined) ? "" : s);
-      }
-      row.push(agg.deduct > 0 ? agg.deduct : "", agg.gradedW, Math.round(agg.finalTotal*100)/100);
-      lines.push(row.map(q).join(","));
-    }
-    var blob = new Blob(["﻿" + lines.join("\r\n")], {type:"text/csv;charset=utf-8"});
-    var a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "成績總表.csv";
-    document.body.appendChild(a); a.click();
-    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-  });
 })();
 </script>
 </body>
